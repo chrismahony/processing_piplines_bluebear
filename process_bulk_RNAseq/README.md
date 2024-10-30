@@ -4,10 +4,13 @@
 
 
 
+
 2. Organise your data a logical way, e.g.
 
 
+
 ```bash
+
 
 /croftap-XXXX/
 |-- my_project
@@ -15,10 +18,13 @@
 | |--count   #where you will run the next steps and perform alingment
 
 
+
 ``` 
 
 
+
 3.  Save this script in to your 'count' folder (or what ever you name it) and call it something link 'count1.txt'. Be sure to amend paths to where your data is as well as #SBATCH --account=croftap-labdata2 to the name of an RDS folder you have access to.
+
 
 ```bash
 
@@ -146,13 +152,18 @@ featureCounts -t exon -g gene_name -a /add_your_path/output/GENOME/MM10.gtf \
 
 ```
 
+
 5. Now open a terminal, navigate to your folder and submit the first script:
+
 
 ```bash
 
+
 sbatch count1.txt
 
+
 ```
+
 
 6. Once all jobs in this array have finihsed then count_all.txt will run to process the final counts. Make sure you save the second script as count_all.txt or it will not run!!
 
