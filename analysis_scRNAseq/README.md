@@ -1,4 +1,4 @@
-# A script for reading in scRNAseq data
+# Generic analysis of scRNAseq data
 
 This script will:
   -read in data
