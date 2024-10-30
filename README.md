@@ -5,4 +5,4 @@ This repository includes workflows for various analyses with easy work flows to 
 Just select the type of analysis you need to do:
 
 Downloading data from Novogene:
-/README.md
+dowloand_data_novogene/README.md
