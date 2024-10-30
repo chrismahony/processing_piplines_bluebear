@@ -18,4 +18,4 @@ Just select the type of analysis you need to do:
 
 4. Processing scRNAseq data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_scRNAseq
 
-5. Analysing scRNAseq: 
+5. Analysing scRNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analysis_scRNAseq
