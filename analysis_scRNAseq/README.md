@@ -7,6 +7,7 @@ This script will:
   -cluster at various resolutiona and FindAllMarkers at these resolutions
 
 <br>
-Then you wwould need to read the data in and manually annotae etc.
+Then you would need to read the data in and manually annotae etc.
 
+<br>
 1. 
