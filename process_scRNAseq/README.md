@@ -11,7 +11,17 @@ The script will find all fastq files in a folder, extract their names an dproces
  <br>
 
 2. Then make a directory call something like 'all_fastqs'. Put all the fastq files from all samples that you want to process.
- <br>
    Do not make sub directories, just put all files in the one dir 'all_fastqs'
 <br>
+
 3. Make a directory called something like 'count', so your project folder would look like:
+
+```bash
+
+/croftap-XXXX/
+|-- my_project
+| |--fastqs #downloaded fatsqs from novogene
+| |--all_fastqs   #where you put all fastqs
+| |--count   #where you will run the next steps and perform alingment
+
+```
