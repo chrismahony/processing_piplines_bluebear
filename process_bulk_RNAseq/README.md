@@ -142,7 +142,9 @@ fi
 
 ``` 
 
-4. Next save the following script in the same folder as the above script. Save it as count_all.txt. Be sure to amend paths to where your data is as well as #SBATCH --account=croftap-labdata2 to the name of an RDS folder you have access to
+4. Next save the following script in the same folder as the above script. Save it as count_all.txt.
+
+   Be sure to amend paths to where your data is as well as #SBATCH --account=croftap-labdata2 to the name of an RDS folder you have access to
 
 ```bash 
 
