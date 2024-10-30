@@ -1,4 +1,3 @@
-```markdown
 
 # Downloading data from Novogene
 
@@ -15,7 +14,7 @@ Copy this file into the directory where you wan to download the data.
 No copy the script below and modify the wget line to the name of your csv
 
 
-```
+
 
 ```bash
 
@@ -37,13 +36,13 @@ for f in *.tar; do tar xf "$f"; done
 
 ```
 
-```markdown
+
 
 Next open a terminal and login
 
 Navigate to the dir where the script is saved.
 
 Submit the script, done!
-```
+
 
 
