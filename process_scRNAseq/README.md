@@ -105,6 +105,7 @@ cellranger aggr --id=aggregated_samples \
 <br>
 8. Open a terminal, naviate to the directory with count.txt
 <br>
+
 9. Submit:
 
 ```bash
