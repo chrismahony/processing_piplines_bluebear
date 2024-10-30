@@ -32,10 +32,10 @@ The script will find all fastq files in a folder, extract their names an dproces
 
 !Important!
 <br>
-Be sure amend the:
+Be sure to amend the:
 
 ```bash
-#SBATCH --account=croftap-scrnacancer01
+#SBATCH --account=croftap-XXXX
 ```
 To a RDS folder you have access to.
 
@@ -58,7 +58,7 @@ Script:
 #SBATCH --mem=399G                       # Total memory
 #SBATCH --time=99:0:0                    # Max runtime
 #SBATCH --mail-type=ALL
-#SBATCH --account=croftap-scrnacancer01
+#SBATCH --account=croftap-XXX
 
 set -e
 module purge; module load bluebear
@@ -102,5 +102,14 @@ cellranger aggr --id=aggregated_samples \
 
 ```
 
+<br>
+8. Open a terminal, naviate to the directory with count.txt
+<br>
+9. Submit:
 
+```bash
+
+sbatch count.txt
+
+```
 
