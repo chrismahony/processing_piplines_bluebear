@@ -35,13 +35,50 @@ for f in *.tar; do tar xf "$f"; done
 
 ```
 
-7. Sav ethe script in the same dir as the csv file
+7. Save the script (from above) in the same dir as the csv file, lest assume you call it:
+
+```bash
+
+download_data.txt
+
+```
 
 8. Next open a terminal and login
 
-9. Navigate to the dir where the script is saved.
+9. Navigate to the dir where the script is saved. E.g.:
 
-10. Submit the script, have a coffee, done!
+ ```bash
+
+cd /rds/projects/c/croftap-XXXX/my_project/
+
+ ```
 
 
 
+
+11. Submit the script like this
+
+ ```bash
+
+sbatch download_data.txt
+
+ ```
+
+## Troubleshooting
+
+Upon submission you might get this error:
+
+ ```bash
+
+sbatch: error: Batch script contains DOS line breaks (\r\n)
+sbatch: error: instead of expected UNIX line breaks (\n).
+
+ ```
+
+Run this and the re-submit the job:
+
+```bash
+
+dos2unix download_data.txt
+
+ ```
