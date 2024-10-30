@@ -1,18 +1,17 @@
 
 # Downloading data from Novogene
 
-Once seq is completed, confirm with Novogene to intiate data release.
+1. Once seq is completed, confrim with Novogene to intiate data release.
 
-Follow email insctructions to login to avalible data.
+2. Follow email insctructions to login to avalible data.
 
-Select batch.
+3. Select batch to download.
 
-Select all files and click 'batch download'.
+4. Select all files and click 'batch download'.
 
-Copy this file into the directory where you wan to download the data.
+5. Copy this file into the directory where you wan to download the data.
 
-No copy the script below and modify the wget line to the name of your csv
-
+6. Now copy the script below and modify the wget line to the name of your csv
 
 
 
@@ -31,18 +30,18 @@ set -e
 
 module purge; module load bluebear
 
-wget -i ./X204SC24103158-Z01-F001.csv
+wget -i ./X204SC24101141-Z01-F001.csv
 for f in *.tar; do tar xf "$f"; done
 
 ```
 
+7. Sav ethe script in the same dir as the csv file
 
+8. Next open a terminal and login
 
-Next open a terminal and login
+9. Navigate to the dir where the script is saved.
 
-Navigate to the dir where the script is saved.
-
-Submit the script, done!
+10. Submit the script, have a coffee, done!
 
 
 
