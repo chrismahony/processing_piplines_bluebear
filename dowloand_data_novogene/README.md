@@ -14,6 +14,9 @@ Copy this file into the directory where you wan to download the data.
 
 No copy the script below and modify the wget line to the name of your csv
 
+
+```
+
 ```bash
 
 #!/bin/bash
@@ -32,7 +35,7 @@ module purge; module load bluebear
 wget -i ./X204SC24103158-Z01-F001.csv
 for f in *.tar; do tar xf "$f"; done
 
-
+```
 
 ```markdown
 
@@ -41,6 +44,6 @@ Next open a terminal and login
 Navigate to the dir where the script is saved.
 
 Submit the script, done!
-
+```
 
 
