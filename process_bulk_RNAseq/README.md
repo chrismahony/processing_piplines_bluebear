@@ -165,6 +165,6 @@ sbatch count1.txt
 ```
 
 
-6. Once all jobs in this array have finihsed then count_all.txt will run to process the final counts. Make sure you save the second script as count_all.txt or it will not run!!
+6. Once all jobs in this array have finihsed then count_all.txt will run to process the final counts. Make sure you save the second script as count_all.txt or it will not run!! Do not change the name!
 
 
