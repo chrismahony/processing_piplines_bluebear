@@ -1,3 +1,7 @@
-# My Analysis Project
+# Bulk and scRNAseq processing piplines- Croft lab- UoB (using BlueBear HPC)
 
-Welcome to my analysis project! This repository includes workflows for various analyses.
+This repository includes workflows for various analyses with easy work flows to follow and insctructions to run.
+
+Just select the type of analysis you need to do:
+
+
