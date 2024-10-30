@@ -1,3 +1,4 @@
 # Processing Bulk RNAseq data
 
-1. Wait until data has been downloaded and untar ed (see
+1. Complete this first: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/dowloand_data_novogene
+2. 
