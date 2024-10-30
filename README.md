@@ -1,4 +1,6 @@
-# Bulk and scRNAseq processing piplines- Croft lab- UoB (using BlueBear HPC)
+# Bulk and scRNAseq processing piplines
+
+## For Croft lab- UoB (using BlueBear HPC)
 
 This repository includes workflows for various analyses with easy work flows to follow and insctructions to run.
 
