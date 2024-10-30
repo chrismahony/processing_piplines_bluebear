@@ -11,4 +11,7 @@ Then you would need to read the data in and manually annotate etc.
 
 <br>
 
-1. 
+1. Complete this step first: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_scRNAseq
+<br>
+
+2. 
