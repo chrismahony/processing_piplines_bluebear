@@ -14,4 +14,6 @@ Just select the type of analysis you need to do:
 
 2. Processing bulk RNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_bulk_RNAseq
 
-3. Analysing bulk RNAseq: 
+3. Analysing bulk RNAseq:
+
+4. Processing scRNAseq data: 
