@@ -12,4 +12,6 @@ Just select the type of analysis you need to do:
 1. Downloading data from Novogene: [dowloand_data_novogene/README.md](https://github.com/chrismahony/processing_piplines_bluebear/tree/main/dowloand_data_novogene)
 
 
-3. Processing bulk RNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_bulk_RNAseq
+2. Processing bulk RNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_bulk_RNAseq
+
+3. Analysing bulk RNAseq: 
