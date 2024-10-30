@@ -23,7 +23,25 @@
 
 
 
-3.  Save this script in to your 'count' folder (or what ever you name it) and call it something link 'count1.txt'. Be sure to amend paths to where your data is as well as #SBATCH --account=croftap-labdata2 to the name of an RDS folder you have access to.
+3.  Save this script in to your 'count' folder (or what ever you name it) and call it something link 'count1.txt'.
+
+ Be sure to amend paths to where your data is as well as #SBATCH --account=croftap-labdata2 to the name of an RDS folder you have access to.
+
+Also amend the number of arrays, if you have 9 samples then you need:
+
+```bash
+#SBATCH --array=0-8
+```
+
+if you have 5 samples then you need:
+
+```bash
+#SBATCH --array=0-4
+```
+
+etc.
+
+Full script:
 
 
 ```bash
