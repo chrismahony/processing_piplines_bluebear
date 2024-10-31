@@ -26,7 +26,7 @@ Just select the type of analysis you need to do:
 
 ## Analysing data (R)
 
-1. Analysing bulk RNAseq (R):
+1. Analysing bulk RNAseq (R):https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analysis_bulk_RNAseq
 
  
 
