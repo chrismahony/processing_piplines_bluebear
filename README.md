@@ -31,3 +31,9 @@ Just select the type of analysis you need to do:
  
 
 2. Analysing scRNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analysis_scRNAseq
+
+
+
+## Analysing data (Python)
+
+1. Analysing scRNAseq
