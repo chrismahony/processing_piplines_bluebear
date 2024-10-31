@@ -29,6 +29,8 @@ source my-virtual-env-${BB_CPU}/bin/activate
 ```Python
 
 pip install scanpy
+pip install bbknn
+pip install scikit-image
 
 ```
 
