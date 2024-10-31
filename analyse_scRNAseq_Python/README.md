@@ -114,6 +114,40 @@ def load_10x_h5_to_anndata(file_paths, sample_names=None, combine=False):
 
 
 
+
+import scanpy as sc
+
+def preprocess_and_analyze(adata, n_top_genes=2000, batch_correction=False, batch_key="sample"):
+    """
+    Preprocesses the AnnData object and performs PCA and UMAP analysis.
+
+    Parameters:
+    adata (AnnData): The AnnData object to preprocess.
+    n_top_genes (int): Number of highly variable genes to select. Default is 2000.
+    batch_correction (bool): Whether to apply batch correction using BBKNN. Default is False.
+    batch_key (str): The key in obs to use for batch information. Default is "sample".
+
+    Returns:
+    AnnData: The processed AnnData object with PCA and UMAP embeddings.
+    """
+    sc.pp.normalize_total(adata)
+    sc.pp.log1p(adata)
+    sc.pp.highly_variable_genes(adata, n_top_genes=n_top_genes, batch_key=batch_key)
+    sc.tl.pca(adata)
+    sc.pp.neighbors(adata)
+     
+    if batch_correction:
+        sc.external.pp.bbknn(adata, batch_key=batch_key)
+    
+    sc.tl.umap(adata)
+    sc.pl.umap(adata, color=[batch_key])
+
+    return adata
+
+
+
+
+
 ```
 
 8. List the files required to read in and sample names and create you object. Note that in this example, I have randomly downsampled the object to 2000 cells for spead and a feasability check:
@@ -162,5 +196,31 @@ sc.pl.violin(
 
 ```
 
+10. Filter based on QC metrics and remove dublets:
 
+```Python
+
+sc.pp.filter_cells(combined_adata_small, min_genes=200)
+sc.pp.filter_cells(combined_adata_small, max_genes=7000)
+sc.pp.filter_genes(combined_adata_small, min_cells=3)
+combined_adata_small = combined_adata_small[combined_adata_small.obs['pct_counts_mt'] < 10, :]
+sc.pp.scrublet(combined_adata_small, batch_key="sample")
+mask = ~combined_adata_small.obs['predicted_doublet']
+combined_adata_small = combined_adata_small[mask].copy()
+combined_adata_small
+
+```
+
+
+11. Process and batch corerect
+
+```Python
+combined_adata_small = preprocess_and_analyze(
+    combined_adata_small, 
+    n_top_genes=2000, 
+    batch_correction=True, 
+    batch_key="sample"
+)
+
+```
 
