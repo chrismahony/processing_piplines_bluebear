@@ -28,6 +28,31 @@ source my-virtual-env-${BB_CPU}/bin/activate
 
 ```Python
 
-pip install Scanpy
+pip install scanpy
+
+```
+
+
+5. Next start a Jupitylab session here: https://portal.bear.bham.ac.uk/pun/sys/dashboard/batch_connect/sessions
+!!!Make sure you select the same version of Python that you loaded above, in this case it was 3.10.4!!!
+
+6. Now you can load modules that you installed in your virtual eniroment:
+
+```Python
+
+import os
+from pathlib import Path
+import sys
+node_type = os.getenv('BB_CPU')
+venv_dir = f'/rds/my_path/my-virtual-env-icelake'  # edit this line to match the venv directory format
+venv_site_pkgs = Path(venv_dir) / 'lib' / f'python{sys.version_info.major}.{sys.version_info.minor}' / 'site-packages'
+if venv_site_pkgs.exists():
+    sys.path.insert(0, str(venv_site_pkgs))
+else:
+    print(f"Path '{venv_site_pkgs}' not found. Check that it exists and/or that it exists for node-type '{node_type}'.")
+
+
+import scanpy as sc
+
 
 ```
