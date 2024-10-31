@@ -224,3 +224,72 @@ combined_adata_small = preprocess_and_analyze(
 
 ```
 
+
+12. Find n clusters and then find genes once this has been reached
+
+```Python
+resolution = 0.1
+max_resolution = 2.0
+while resolution <= max_resolution:
+    sc.tl.louvain(combined_adata_small, resolution=resolution, key_added=f'louvain_{resolution:.1f}')
+    num_clusters = combined_adata_small.obs[f'louvain_{resolution:.1f}'].nunique()
+    print(f"Resolution: {resolution:.1f}, Number of clusters: {num_clusters}")
+    
+    if num_clusters == 8:
+        print(f"Running sc.tl.rank_genes_groups for resolution {resolution:.1f}")
+        sc.tl.rank_genes_groups(combined_adata_small, groupby=f'louvain_{resolution:.1f}', method='t-test')
+        break
+    
+    
+    resolution += 0.1
+
+
+if resolution > max_resolution:
+    print("Did not find exactly 8 clusters within the given resolution range.")
+
+```
+
+
+13. Visulise clusters and top genes
+
+```Python
+
+sc.pl.umap(
+    combined_adata_small,
+    color=["louvain_0.2", "sample"],
+    legend_loc="on data",
+)
+
+
+sc.pl.rank_genes_groups_dotplot(
+    combined_adata_small, groupby="louvain_1.0", standard_scale="var", n_genes=10
+)
+
+```
+
+14. Assign cell labels and replot dotplot
+
+```Python
+
+combined_adata_small.obs["cell_types"] = combined_adata_small.obs["louvain_0.2"].map(
+    {
+        "0": "Tcells",
+        "1": "fibs",
+        "2": "macs",
+        "3": "adipose",
+        "4": "Bcells",
+        "5": "fibs2",
+        "6": "contam",
+        "7": "contam2",
+    }
+)
+
+sc.tl.rank_genes_groups(combined_adata_small, groupby="cell_types", method="wilcoxon")
+
+
+sc.pl.rank_genes_groups_dotplot(
+    combined_adata_small, groupby="cell_types", standard_scale="var", n_genes=10
+)
+
+```
+
