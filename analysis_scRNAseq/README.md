@@ -21,6 +21,7 @@ Then you would need to read the data in and manually annotate etc.
 ```bash
 library(Signac)
 library(Seurat)
+library(sporkforlife)
 
 
 data.10x = list()
