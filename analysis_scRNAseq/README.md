@@ -37,6 +37,8 @@ sample_names <- sub('/outs/filtered_feature_bc_matrix/', '', sample_names)
 
 
 #this sporkforlife function will process, aggregate samples and cluster to the number of target_n_cluster using Seurat
+#once the target number of clusters has been reached then Seurat::FindAllMarkers() will run for that resolution
+
 process_scrna_data(dirs, sample_names, target_n_clusters = 5,
                                resolution_range = seq(0.05, 0.3, by = 0.5),
                                min_nFeature_RNA = 500, max_nFeature_RNA = 7000,
