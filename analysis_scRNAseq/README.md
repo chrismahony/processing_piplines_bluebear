@@ -21,9 +21,12 @@ Then you would need to read the data in and manually annotate etc.
 ```bash
 library(Signac)
 library(Seurat)
+
+#devtools::install_github("chrismahony/sprokforlife") #install if required
 library(sporkforlife)
 
 
+#optain a list of dirs to samples and smaple names
 data.10x = list()
 dirs <- list.dirs("/rds/my_path/count", recursive = FALSE)  #path to where cellrnager fisished the count step
 dirs <- dirs[-1] #remove the aggregated folder, would need to modify this step if you did not do it
@@ -33,53 +36,11 @@ sample_names <- sub('/rds/my_path/count', '', dirs)
 sample_names <- sub('/outs/filtered_feature_bc_matrix/', '', sample_names)
 
 
-for (i in 1:length(dirs)) {
-    data.10x[[i]] <- Read10X(data.dir = dirs[[i]])
-}
-
-names(data.10x) <- sample_names 
-  
-scrna.list = list()
-for (i in 1:length(data.10x)) {
-    print(paste("Processing sample:", sample_names[i]))
-    scrna.list[[i]] = CreateSeuratObject(counts = data.10x[[i]], min.cells=3, min.features=200, project=sample_names[i]);
-    scrna.list[[i]][["percent.mt"]] = PercentageFeatureSet(object=scrna.list[[i]], pattern = "^MT-");
-    scrna.list[[i]] =subset(scrna.list[[i]], subset = nFeature_RNA > 200 & nFeature_RNA < 7000 & percent.mt < 10)
-    scrna.list[[i]] =NormalizeData(object = scrna.list[[i]]);
-    scrna.list[[i]] =ScaleData(object = scrna.list[[i]]);
-    scrna.list[[i]] =FindVariableFeatures(object = scrna.list[[i]]);
-    scrna.list[[i]] =RunPCA(object = scrna.list[[i]], verbose = FALSE);     
-   }
-
-
-rm(data.10x)
-names(scrna.list) <- sample_names
-anchors <- FindIntegrationAnchors(object.list = scrna.list, dims = 1:50)
-aggr <- IntegrateData(anchorset = anchors, dims = 1:50)
-aggr <- FindVariableFeatures(aggr)
-aggr <- ScaleData(aggr, verbose = FALSE)
-aggr <- RunPCA(aggr, verbose = FALSE)
-aggr <- RunUMAP(aggr, dims = 1:50)
-aggr <- FindNeighbors(aggr, dims = 1:30)
-aggr <- FindClusters(aggr, resolution = c(0.01, 0.05, 0.1, 0.2, 0.3), graph.name = 'integrated_snn')
-
-Idents(aggr)<-'integrated_snn_res.0.01'  
-res0.01markers<-FindAllMarkers(aggr, only.pos = T)
-
-Idents(aggr)<-'integrated_snn_res.0.05'
-res0.05markers<-FindAllMarkers(aggr, only.pos = T)
-
-Idents(aggr)<-'integrated_snn_res.0.1'
-res0.1markers<-FindAllMarkers(aggr, only.pos = T)
-
-Idents(aggr)<-'integrated_snn_res.0.2'
-res0.2markers<-FindAllMarkers(aggr, only.pos = T)
-
-Idents(aggr)<-'integrated_snn_res.0.3'
-res0.3markers<-FindAllMarkers(aggr, only.pos = T)
-
-save.image("/rds/my_path/count/analysis_init.RData")
-
+#this sporkforlife function will process, aggregate samples and cluster to the number of target_n_cluster using Seurat
+process_scrna_data(dirs, sample_names, target_n_clusters = 5,
+                               resolution_range = seq(0.05, 0.3, by = 0.5),
+                               min_nFeature_RNA = 500, max_nFeature_RNA = 7000,
+                               max_percent_mt = 10, n_dims=50)
 
 ```
 
