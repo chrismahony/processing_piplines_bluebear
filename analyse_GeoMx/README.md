@@ -2,7 +2,7 @@
 1. Load packages
 
 ```R
-remotes::install_github("DavisLaboratory/GeoMXAnalysisWorkflow", build_vignettes = FALSE)
+#remotes::install_github("DavisLaboratory/GeoMXAnalysisWorkflow", build_vignettes = FALSE)  #install as required
 library(GeoMXAnalysisWorkflow)
 library(NanoStringNCTools)
 library(GeomxTools)
