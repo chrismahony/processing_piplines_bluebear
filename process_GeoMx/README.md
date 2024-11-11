@@ -50,7 +50,7 @@ cd /rds/projects  # navigate to the folder there all the sub dirs are found with
 
 mkdir all_fastqs
 
-find ./  -mindepth 1 -type f | xargs -i bash -c 'mv "{}" $(dirname "{}")/..'
+find ./ -mindepth 1 -type f -exec mv "{}" all_fastqs/ \;
 
 ```
 
