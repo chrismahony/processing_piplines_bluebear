@@ -42,6 +42,6 @@ Just select the type of analysis you need to do:
 
 ## Processing Geomix data and analysing (R)
 
-1. Processing Geomix data:
+1. Processing Geomix data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_GeoMx
 
 2. Analysing Geomix data (R):  https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_GeoMx
