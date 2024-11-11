@@ -6,6 +6,7 @@
 
 If so then you will need to run a script like this to process them to fastqs
 
+
 ```bash
 
 #!/bin/bash
@@ -15,7 +16,7 @@ If so then you will need to run a script like this to process them to fastqs
 #SBATCH --mem 64G                                    
 #SBATCH -t 0-05:00                                     
 #SBATCH --mail-type=FAIL,END                           
-#SBATCH --account=mcmurraj-bta-geomx-data-storage       
+#SBATCH --account=croftap-actacfbmac       
 
 set -e
 module purge; module load bluebear 
@@ -37,6 +38,8 @@ bcl-convert --bcl-input-directory /rds/path/BCL_data \
 Script like this should work:
 
 
+!!Note that the .GNP_config.ini file has also come for me from BTA
+
 ```bash
 
 #!/bin/bash
@@ -46,7 +49,7 @@ Script like this should work:
 #SBATCH --mem 64G                                    
 #SBATCH -t 0-05:00                                     
 #SBATCH --mail-type=FAIL,END                           
-#SBATCH --account=mcmurraj-bta-geomx-data-storage       
+#SBATCH --account=croftap-actacfbmac       
 
 set -e
 module purge; module load bluebear 
@@ -63,5 +66,7 @@ geomxngspipeline --in=/rds/path_to_fastqs/GB500923-AH_FASTQ \
 
 
 ```
+
+
 
 
