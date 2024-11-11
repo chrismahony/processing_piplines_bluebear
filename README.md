@@ -37,3 +37,11 @@ Just select the type of analysis you need to do:
 ## Analysing data (Python)
 
 1. Analysing scRNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_scRNAseq_Python
+
+
+
+## Processing Geomix data and analysing (R)
+
+1. Processing Geomix data:
+
+2. Analysing Geomix data (R): 
