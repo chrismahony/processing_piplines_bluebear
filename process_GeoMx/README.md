@@ -41,7 +41,7 @@ Script like this should work:
 !!Note that the .GNP_config.ini file has also come for me from BTA
 
 
-!! also not, that for me the fastq files are in seperat folder for each area/sample. To use bash and move all the file into a dir called 'all_fastqs' run this in bash
+!! also note, that for me the fastq files are in seperat folder for each area/sample. To use bash and move all the file into a dir called 'all_fastqs' run this in bash
 
 
 ```bash
