@@ -15,6 +15,16 @@ library(GeoMxWorkflows)
 
 ```R
 
+DCCFiles <- dir(file.path("/rds/projects/c/croftap-actacfbmac/geomix_nov2024/DCC_files"), pattern = ".dcc$",
+                full.names = TRUE, recursive = TRUE)
+
+
+# PKC for Human is uploaded to this repo
+PKCFiles <- dir(file.path("/rds/projects/c/croftap-actacfbmac/geomix_nov2024/"), pattern = ".pkc$",
+                                full.names = TRUE, recursive = TRUE)
+
+
+
 
 ```
    
