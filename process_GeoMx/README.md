@@ -87,4 +87,7 @@ geomxngspipeline --in=/rds/path_to_fastqs/GB500923-AH_FASTQ \
 
 
 
+4. Once completed you should have a folder with DCC files in them
+
+
 
