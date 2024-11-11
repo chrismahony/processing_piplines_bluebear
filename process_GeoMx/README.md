@@ -40,6 +40,24 @@ Script like this should work:
 
 !!Note that the .GNP_config.ini file has also come for me from BTA
 
+
+!! also not, that for me the fastq files are in seperat folder for each area/sample. To use bash and move all the file into a dir called 'all_fastqs' run this in bash
+
+
+```bash
+
+cd /rds/projects  # navigate to the folder there all the sub dirs are found with the fastq files
+
+mkdir all_fastqs
+
+find ./  -mindepth 1 -type f | xargs -i bash -c 'mv "{}" $(dirname "{}")/..'
+
+```
+
+
+Now you can sbatch the following script:
+
+
 ```bash
 
 #!/bin/bash
