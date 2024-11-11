@@ -53,7 +53,6 @@ module purge; module load bluebear
 module load bear-apps/2021b
 module load GeoMxNGSPipeline/2.3.3.10 # Required package to run script
 
-## Run the actual script ========================================================
 ### CHANGE THE NUMBER OF THREADS IN THE CONFIG.INI FILE TO 8
 geomxngspipeline --in=/rds/path_to_fastqs/GB500923-AH_FASTQ \
 --out=/rds/where_you_want_output/00_DCC-files \
