@@ -23,6 +23,8 @@ Just select the type of analysis you need to do:
 
 
 
+4. Processing scATACseq data:
+
 
 ## Analysing data (R)
 
