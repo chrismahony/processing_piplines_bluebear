@@ -23,7 +23,7 @@ Just select the type of analysis you need to do:
 
 
 
-4. Processing scATACseq data:
+4. Processing scATACseq data: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_scATACseq/README.md
 
 
 ## Analysing data (R)
