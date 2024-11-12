@@ -48,3 +48,52 @@ OUTPUT_DIR #where you wan to store the data
 REF_PATH #where you ref genome is
 
 ```
+
+
+Main script:
+
+
+```bash
+
+
+#!/bin/bash
+#SBATCH -n 70                            # Number of cores
+#SBATCH --mem=399G                       # Total memory
+#SBATCH --time=99:0:0                    # Max runtime
+#SBATCH --mail-type=ALL
+#SBATCH --account=croftap-XXX
+
+set -e
+module purge; module load bluebear
+module load CellRanger-ATAC/2.0.0
+
+# Set paths
+FASTQ_DIR="/rds/my_path/all_fastqs"  
+OUTPUT_DIR="/rds/my_path/count/"      
+REF_PATH="/rds/bear-apps/apps-data/CellRanger/refdata-cellranger-mm10-2.1.0"     
+
+# Extract unique sample names (removing path and everything after the first underscore)
+for sample_name in $(ls $FASTQ_DIR/*.fastq.gz | sed 's|.*/||; s|_\(.*\)||' | sort | uniq); do
+    
+    # Gather unique sample names related to the current sample
+    sample_names=$(ls $FASTQ_DIR | grep "^${sample_name%_*}_" | sed 's|_S.*||' | sort | uniq | tr '\n' ',' | sed 's|,$||')
+
+    sample_output_dir="$OUTPUT_DIR/$sample_name"
+
+    # Run CellRanger count for the sample
+    echo "Running cellranger-atac count for sample: $sample_name"
+    cellranger-atac count --id=$sample_name \
+                     --transcriptome=$REF_PATH \
+                     --fastqs=$FASTQ_DIR \
+                     --sample=$sample_names \
+                     --localcores=8 \
+                     --localmem=64
+
+   done
+
+
+
+```
+
+
+
