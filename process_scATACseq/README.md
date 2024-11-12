@@ -42,13 +42,6 @@ To a RDS folder you have access to.
 You will also need to amend:
 
 
-```bash
-FASTQ_DIR #the folder you put all the fastq files
-OUTPUT_DIR #where you wan to store the data
-REF_PATH #where you ref genome is
-
-```
-
 
 Main script:
 
@@ -57,39 +50,40 @@ Main script:
 
 
 #!/bin/bash
-#SBATCH -n 70                            # Number of cores
-#SBATCH --mem=399G                       # Total memory
-#SBATCH --time=99:0:0                    # Max runtime
-#SBATCH --mail-type=ALL
-#SBATCH --account=croftap-XXX
+#SBATCH -n 40
+#SBATCH -N 1
+#SBATCH --mem 199G
+#SBATCH --time 72:0:0
+#SBATCH --mail-type ALL
+#SBATCH --account=croftap-stia-atac
+#SBATCH --output=./log/test_%A_%a.out
+#SBATCH --error=./log/test_%A_%a.err
+#SBATCH --array=0-6
+
+export MRO_DISK_SPACE_CHECK=disable
 
 set -e
+mkdir log
 module purge; module load bluebear
 module load CellRanger-ATAC/2.0.0
 
-# Set paths
-FASTQ_DIR="/rds/my_path/all_fastqs"  
-OUTPUT_DIR="/rds/my_path/count/"      
-REF_PATH="/rds/bear-apps/apps-data/CellRanger/refdata-cellranger-mm10-2.1.0"     
 
-# Extract unique sample names (removing path and everything after the first underscore)
-for sample_name in $(ls $FASTQ_DIR/*.fastq.gz | sed 's|.*/||; s|_\(.*\)||' | sort | uniq); do
-    
-    # Gather unique sample names related to the current sample
-    sample_names=$(ls $FASTQ_DIR | grep "^${sample_name%_*}_" | sed 's|_S.*||' | sort | uniq | tr '\n' ',' | sed 's|,$||')
+sample_ID=("ATACT2518_044a-AK14653_HHYV7DRX5,ATACT2518_044b-AK14654_HHYV7DRX5,ATACT2518_044c-AK14655_HHYV7DRX5,ATACT2518_044d-AK14656_HHYV7DRX5" \
+"ATACT2519_019LKa-AK8422_H7V5NDRX5,ATACT2519_019LKb-AK8423_H7V5NDRX5,ATACT2519_019LKc-AK8424_H7V5NDRX5,ATACT2519_019LKd-AK8421_H7V5NDRX5" \
+"ATACT2519_019RKa-AK13919_H7VMWDRX5,ATACT2519_019RKb-AK13921_H7VMWDRX5,ATACT2519_019RKc-AK13920_H7VMWDRX5,ATACT2519_019RKd-AK13922_H7VMWDRX5" \
+"ATACT2519_021LKa-AK2543_H7VMWDRX5,ATACT2519_021LKb-GA01_H7VMWDRX5,ATACT2519_021LKc-X127_H7VMWDRX5,ATACT2519_021LKd-X172_H7VMWDRX5" \
+"ATACT2519_021RKa-AK12521_H7VMWDRX5,ATACT2519_021RKb-AK12522_H7VMWDRX5,ATACT2519_021RKc-AK12523_H7VMWDRX5,ATACT2519_021RKd-AK11699_H7VMWDRX5" \
+"ATACT2519_022a-X002_HHYV7DRX5,ATACT2519_022b-AK7142_HHYV7DRX5,ATACT2519_022c-X087_HHYV7DRX5,ATACT2519_022d-X133_HHYV7DRX5" \
+"ATACT2519_023a-A6_HHYV7DRX5,ATACT2519_023b-AK8610_HHYV7DRX5,ATACT2519_023c-AK8609_HHYV7DRX5,ATACT2519_023d-AK8611_HHYV7DRX5")
 
-    sample_output_dir="$OUTPUT_DIR/$sample_name"
+output_ID=("ATACT2518_044" "ATACT2519_019LK" "ATACT2519_019RK" "ATACT2519_021LK" "ATACT2519_021RK" "ATACT2519_022" "ATACT2519_023")
 
-    # Run CellRanger count for the sample
-    echo "Running cellranger-atac count for sample: $sample_name"
-    cellranger-atac count --id=$sample_name \
-                     --transcriptome=$REF_PATH \
-                     --fastqs=$FASTQ_DIR \
-                     --sample=$sample_names \
-                     --localcores=8 \
-                     --localmem=64
-
-   done
+cellranger-atac count --id=${output_ID[$SLURM_ARRAY_TASK_ID]} \
+                   --reference=/rds/projects/c/croftap-mapjag-batch5/scATAC/count/refdata-cellranger-arc-GRCh38-2020-A-2.0.0 \
+                   --fastqs=/rds/projects/c/croftap-mapjagb11/scATACseq/all_fastqs_all_batches \
+                   --sample=${sample_ID[$SLURM_ARRAY_TASK_ID]} \
+                   --localcores=8 \
+                   --localmem=64
 
 
 
@@ -97,3 +91,4 @@ for sample_name in $(ls $FASTQ_DIR/*.fastq.gz | sed 's|.*/||; s|_\(.*\)||' | sor
 
 
 
+5. Should take ~6 h per sample, could be longer if more cells
