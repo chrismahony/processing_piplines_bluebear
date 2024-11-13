@@ -61,55 +61,59 @@ library(sfdct)
 library(sf)
 
 
-cellgeoms_baysor<-function(segfile){
-            transcriptspercell<-furrr::future_map_dfr(.x = unique(segfile$cell), 
-                                                  .f = ~ data.frame(
-                                                      cell = .x, 
-                                                      num_transcripts = sum(segfile$cell == .x)
-                                                  ), 
-                                                  .options = furrr_options(seed = TRUE)
-        )
-        cellidx <- transcriptspercell$cell[transcriptspercell$num_transcripts > 5]
-        segfile.new <- furrr::future_map_dfr(.x = cellidx, function(.x) { 
-            res <- st_as_sf(segfile[segfile$cell == .x, c('x', 'y')], coords = c('x', 'y')) %>%
-                st_union() %>% #dont remove the union. It is needed here.
-                ct_triangulate()
-            resdf <- data.frame(cell = .x, geometry = res)
-            return(resdf)
-        }, .options = furrr_options(seed = TRUE))
-        
-        cellgeoms_final<-segfile.new$geometry %>% 
-            furrr::future_map(purrr::reduce, st_union, .options = furrr_options(seed = TRUE)) %>%
-            st_sfc() %>%
-            as.data.frame()
-        
-        cellgeoms_final<-cellgeoms_final %>%
-            cbind(transcriptspercell[transcriptspercell$cell %in% cellidx, ])
-        
-        return(cellgeoms_final)
-        
-    
-    
-}
-
-
-
-
-calculate_area_and_centroid <- function(df) {
+cellgeoms_with_area_centroid <- function(segfile) {
+  # Step 1: Calculate transcripts per cell
+  transcriptspercell <- furrr::future_map_dfr(
+    .x = unique(segfile$cell), 
+    .f = ~ data.frame(
+      cell = .x, 
+      num_transcripts = sum(segfile$cell == .x)
+    ), 
+    .options = furrr_options(seed = TRUE)
+  )
+  
+  # Step 2: Filter cells with more than 5 transcripts
+  cellidx <- transcriptspercell$cell[transcriptspercell$num_transcripts > 5]
+  
+  # Step 3: Calculate geometry for each cell using triangulation
+  segfile.new <- furrr::future_map_dfr(
+    .x = cellidx, 
+    .f = function(.x) { 
+      res <- st_as_sf(segfile[segfile$cell == .x, c('x', 'y')], coords = c('x', 'y')) %>%
+        st_union() %>%  # st_union is needed here
+        ct_triangulate()
+      resdf <- data.frame(cell = .x, geometry = res)
+      return(resdf)
+    }, 
+    .options = furrr_options(seed = TRUE)
+  )
+  
+  # Step 4: Finalize cell geometries by merging geometries for each cell
+  cellgeoms_final <- segfile.new$geometry %>%
+    furrr::future_map(purrr::reduce, st_union, .options = furrr_options(seed = TRUE)) %>%
+    st_sfc() %>%
+    as.data.frame()
+  
+  # Step 5: Add transcript count information to the geometry data
+  cellgeoms_final <- cellgeoms_final %>%
+    cbind(transcriptspercell[transcriptspercell$cell %in% cellidx, ])
+  
+  # Step 6: Calculate area and centroids for each geometry
   # Calculate the area of each geometry
-  df$area <- st_area(df$geometry)
+  cellgeoms_final$area <- st_area(cellgeoms_final$geometry)
   
   # Calculate the centroid of each geometry
-  centroids <- st_centroid(df$geometry)
+  centroids <- st_centroid(cellgeoms_final$geometry)
   
   # Extract X and Y coordinates of the centroid
   centroid_coords <- st_coordinates(centroids)
-  df$centroid_x <- centroid_coords[, 1]
-  df$centroid_y <- centroid_coords[, 2]
+  cellgeoms_final$centroid_x <- centroid_coords[, 1]
+  cellgeoms_final$centroid_y <- centroid_coords[, 2]
   
-  # Return the modified data frame with area and centroid columns
-  return(df)
+  # Return the final data frame with area and centroid columns
+  return(cellgeoms_final)
 }
+
 
 
 
@@ -131,10 +135,8 @@ data[[i]]$cell <- data[[i]]$cell_id_new
 #data[[i]]$y <- data[[i]]$y_location
 
 #draw cells
-geoms_all[[i]] <- cellgeoms_baysor(data[[i]])
+geoms_all[[i]] <- cellgeoms_with_area_centroid(data[[i]])
 
-#add area and num txs
-geoms_all[[i]] <- calculate_area_and_centroid(geoms_all[[i]])
 }
 
 ```
@@ -160,3 +162,164 @@ geoms_all[[1]] %>% as.data.frame %>%
 
 
 ```
+
+
+6. Plot whole tissue with all cells and look at area and num tx
+
+```R
+
+combined_df <- do.call(rbind, geoms_all)
+
+combined_df %>% as.data.frame %>% 
+    ggplot()+
+     geom_sf(aes(geometry = geometry, fill = num_transcripts), alpha = 0.7,
+)+theme_minimal()
+
+
+combined_df %>% as.data.frame %>% 
+    ggplot()+
+     geom_sf(aes(geometry = geometry, fill = area), alpha = 0.7,
+              color = "black")+theme_minimal()
+
+```
+
+7. Next make a Seurt object. Need to gof from tx tables to count tables to processed data merged together
+
+First defefine useful functions
+
+
+
+```R
+
+make_count_mtx <- function(genes, cells, remove_bg = TRUE) {
+    if (remove_bg) {
+        idx <- cells != 0  # Logical indexing is faster than `which`
+        genes <- genes[idx]
+        cells <- cells[idx]
+    }
+
+    # Retrieve unique levels once for efficiency
+    unique_genes <- unique(genes)
+    unique_cells <- unique(cells)
+    
+    # Map genes and cells to integer indices
+    gene_idx <- match(genes, unique_genes)
+    cell_idx <- match(cells, unique_cells)
+    
+    # Create sparse matrix
+    counts <- Matrix::sparseMatrix(
+        i = gene_idx, 
+        j = cell_idx, 
+        x = rep(1, length(gene_idx)),  # Each entry is 1
+        dims = c(length(unique_genes), length(unique_cells))
+    )
+    
+    # Set row and column names
+    rownames(counts) <- unique_genes
+    colnames(counts) <- unique_cells
+    
+    return(counts)
+}
+
+
+process_seurat_data <- function(data, combined_df, num_datasets = 3) {
+  # Create empty lists to store counts and Seurat objects
+  counts <- list()
+  seurats <- list()
+
+  # Loop through each dataset to create count matrices and Seurat objects
+  for (i in 1:num_datasets) {
+    counts[[i]] <- make_count_mtx(genes = data[[i]]$gene, data[[i]]$cell_id_new)
+    seurats[[i]] <- CreateSeuratObject(counts = counts[[i]], project = unique(data[[i]]$donor_FOV))
+  }
+
+  # Merge all Seurat objects
+  all_merged <- merge(x = seurats[[1]], y = seurats[2:length(seurats)])
+
+  # Add cell area metadata
+  cell_area_vector <- setNames(combined_df$area, combined_df$cell)
+  all_merged <- AddMetaData(all_merged, metadata = cell_area_vector, col.name = "cell_area")
+
+  # Remove cells with NA in cell_area
+  na_cells <- all_merged@meta.data[is.na(all_merged@meta.data$cell_area), ]
+  all_merged <- all_merged[, !colnames(all_merged) %in% rownames(na_cells)]
+
+  # Subset based on feature and count thresholds
+  all_merged <- subset(all_merged, subset = nFeature_RNA > round(median(all_merged$nFeature_RNA)/2) &
+                         nCount_RNA > round(median(all_merged$nCount_RNA)/2) &
+                         cell_area > round(median(all_merged$cell_area)/4))
+
+  # Normalize and scale data, find variable features, run PCA and UMAP
+  all_merged <- all_merged %>% 
+    NormalizeData(scale.factor = median(all_merged$nCount_RNA)) %>% 
+    ScaleData() %>% 
+    FindVariableFeatures() %>% 
+    RunPCA() %>% 
+    RunUMAP(dims = 1:40) %>% 
+    FindNeighbors(dims=1:40) %>% 
+    FindClusters(res=c(0.01, 0.05, 0.1, 0.2))
+
+  # Plot UMAP
+  DimPlot(all_merged, raster = FALSE) + NoLegend()
+
+  return(all_merged)
+}
+```
+
+8. Now process data
+
+```R
+
+# First prepare geoms for next step
+for (i in 1:length(geoms_all)){
+  geoms_all[[i]]$cell <- paste0(geoms_all[[i]]$cell, "_", i)
+  }
+combined_df <- do.call(rbind, geoms_all)
+
+
+#Now ready to process
+#this function uses 'donor_FOV' column in your data df
+all_merged <- process_seurat_data(data = data, combined_df = combined_df, num_datasets = 3)
+
+
+```
+
+9. Recluster, examine clusters and assing cell ids as required
+
+
+10. Now loot to see where clusters are in space
+
+```R
+
+index <- match(combined_df$cell, rownames(all_merged@meta.data))
+combined_df$clusters <- all_merged@meta.data$RNA_snn_res.0.2[index]
+
+
+combined_df %>% as.data.frame %>% 
+    ggplot()+
+     geom_sf(aes(geometry = geometry, fill = clusters), alpha = 0.7,
+              color = "black")+theme_minimal()
+
+
+```
+
+11. Now plot the expression of a gene of interest
+
+```R
+
+gene_name <- 'SOX2'
+gene_expression <- all_merged@assays$RNA@data[gene_name, ]
+combined_df$gene_expression <- gene_expression[match(combined_df$cell, names(gene_expression))]
+
+combined_df %>% 
+  as.data.frame() %>% 
+  ggplot() +
+  geom_sf(aes(geometry = geometry, fill = gene_expression), alpha = 0.7, color = "black") +
+  scale_fill_viridis_c(option = "C") +  # You can change this scale to adjust color mapping
+  theme_minimal() +
+  labs(title = paste("Expression of", gene_name))
+
+
+```
+
+
