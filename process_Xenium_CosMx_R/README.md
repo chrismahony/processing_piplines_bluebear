@@ -29,6 +29,14 @@ for (i in 1:10) {
 library(data.table)
 full_tx_table<-rbindlist(data)
 
+
+#filter out BLANKS, unassinge tx and Neg probes at this stage
+
+
+# I created this column for downstream analysis
+full_tx_table <- filter(all_tx_f, donor_FOV== unique(all_tx_f$donor_FOV)[[i]])
+
+
 ```
 
 Take care if you have .csvs across mutiple donors
