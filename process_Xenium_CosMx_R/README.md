@@ -61,58 +61,112 @@ library(sfdct)
 library(sf)
 
 
-cellgeoms_with_area_centroid <- function(segfile) {
+cellgeoms_with_area_centroid_slow <- function(segfile) {
   # Step 1: Calculate transcripts per cell
   transcriptspercell <- furrr::future_map_dfr(
-    .x = unique(segfile$cell), 
+    .x = unique(segfile$cell),
     .f = ~ data.frame(
-      cell = .x, 
+      cell = .x,
       num_transcripts = sum(segfile$cell == .x)
-    ), 
+    ),
     .options = furrr_options(seed = TRUE)
   )
-  
+
   # Step 2: Filter cells with more than 5 transcripts
   cellidx <- transcriptspercell$cell[transcriptspercell$num_transcripts > 5]
-  
+
   # Step 3: Calculate geometry for each cell using triangulation
   segfile.new <- furrr::future_map_dfr(
-    .x = cellidx, 
-    .f = function(.x) { 
+    .x = cellidx,
+    .f = function(.x) {
       res <- st_as_sf(segfile[segfile$cell == .x, c('x', 'y')], coords = c('x', 'y')) %>%
         st_union() %>%  # st_union is needed here
         ct_triangulate()
       resdf <- data.frame(cell = .x, geometry = res)
       return(resdf)
-    }, 
+    },
     .options = furrr_options(seed = TRUE)
   )
-  
+
   # Step 4: Finalize cell geometries by merging geometries for each cell
   cellgeoms_final <- segfile.new$geometry %>%
     furrr::future_map(purrr::reduce, st_union, .options = furrr_options(seed = TRUE)) %>%
     st_sfc() %>%
     as.data.frame()
-  
+
   # Step 5: Add transcript count information to the geometry data
   cellgeoms_final <- cellgeoms_final %>%
     cbind(transcriptspercell[transcriptspercell$cell %in% cellidx, ])
-  
+
   # Step 6: Calculate area and centroids for each geometry
   # Calculate the area of each geometry
   cellgeoms_final$area <- st_area(cellgeoms_final$geometry)
-  
+
   # Calculate the centroid of each geometry
   centroids <- st_centroid(cellgeoms_final$geometry)
-  
+
   # Extract X and Y coordinates of the centroid
   centroid_coords <- st_coordinates(centroids)
   cellgeoms_final$centroid_x <- centroid_coords[, 1]
   cellgeoms_final$centroid_y <- centroid_coords[, 2]
-  
+
   # Return the final data frame with area and centroid columns
   return(cellgeoms_final)
 }
+
+
+
+cellgeoms_with_area_centroid_fast <- function(segfile) {
+  # Step 1: Calculate transcripts per cell
+  transcriptspercell <- furrr::future_map_dfr(
+    .x = unique(segfile$cell),
+    .f = ~ data.frame(
+      cell = .x,
+      num_transcripts = sum(segfile$cell == .x)
+    ),
+    .options = furrr_options(seed = TRUE)
+  )
+
+  # Step 2: Filter cells with more than 5 transcripts
+  cellidx <- transcriptspercell$cell[transcriptspercell$num_transcripts > 5]
+
+  # Step 3: Calculate and union geometry for each cell
+  segfile.new <- furrr::future_map_dfr(
+    .x = cellidx,
+    .f = function(.x) {
+      cell_data <- segfile[segfile$cell == .x, c('x', 'y')]
+      # Create an sf object and triangulate
+      triangles <- st_as_sf(cell_data, coords = c('x', 'y')) %>%
+        st_combine() %>%
+        ct_triangulate() %>%
+        st_union()  # Combine triangles into one geometry per cell
+      data.frame(cell = .x, geometry = st_geometry(triangles))
+    },
+    .options = furrr_options(seed = TRUE)
+  )
+
+  # Step 4: Add transcript count information to the geometry data
+  cellgeoms_final <- dplyr::left_join(segfile.new, transcriptspercell, by = "cell")
+
+  # Step 5: Calculate area and centroids for each geometry
+  cellgeoms_final <- cellgeoms_final %>%
+    mutate(
+      area = st_area(geometry),
+      centroid = st_centroid(geometry)
+    )
+
+  # Extract X and Y coordinates of the centroid
+  centroid_coords <- st_coordinates(cellgeoms_final$centroid)
+  cellgeoms_final$centroid_x <- centroid_coords[, 1]
+  cellgeoms_final$centroid_y <- centroid_coords[, 2]
+
+  # Remove the temporary centroid column
+  cellgeoms_final$centroid <- NULL
+
+  # Return the final data frame with area and centroid columns
+  return(cellgeoms_final)
+}
+
 
 
 
@@ -127,6 +181,8 @@ cellgeoms_with_area_centroid <- function(segfile) {
 geoms_all <- list()
 
 
+#slow takes roughly 10x longer, but is better for plotting cells. The fast is much faster but will have extra lines going through the cells when you plot du to the tirangulaiton function (i have not found a wa yto get around this yet!)
+
 for (i in 1:length(data)){
   
 #Need a column called 'x' and 'y' and 'cell' to draw cells
@@ -135,7 +191,7 @@ data[[i]]$cell <- data[[i]]$cell_id_new
 #data[[i]]$y <- data[[i]]$y_location
 
 #draw cells
-geoms_all[[i]] <- cellgeoms_with_area_centroid(data[[i]])
+geoms_all[[i]] <- cellgeoms_with_area_centroid_slow(data[[i]])
 
 }
 
