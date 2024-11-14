@@ -70,15 +70,21 @@ import scanpy as sc
 import scanpy as sc
 from pathlib import Path
 
-def load_10x_h5_to_anndata(file_paths, sample_names=None, combine=False):
+import scanpy as sc
+import numpy as np
+from pathlib import Path
+
+def load_10x_h5_to_anndata(file_paths, sample_names=None, combine=False, downsample=None):
     """
     Load 10x Genomics .h5 files into AnnData objects and optionally combine them.
-    
+    Also supports downsampling to a fixed number of cells per sample.
+
     Parameters:
     - file_paths: List of strings or Path objects, each path pointing to a 10x .h5 file.
     - sample_names: List of sample names, one per file path. Defaults to the file name if not provided.
     - combine: Boolean, if True, combines all matrices into a single AnnData object.
-    
+    - downsample: Integer, the number of cells to retain for each sample. If None, no downsampling is done.
+
     Returns:
     - If combine is False, returns a list of AnnData objects.
     - If combine is True, returns a single combined AnnData object with sample names.
@@ -102,6 +108,11 @@ def load_10x_h5_to_anndata(file_paths, sample_names=None, combine=False):
         # Add sample name as metadata
         adata.obs['sample'] = sample_name
         
+        # Downsample if specified
+        if downsample is not None and downsample < adata.n_obs:
+            # Randomly select `downsample` number of cells
+            adata = adata[np.random.choice(adata.n_obs, downsample, replace=False), :]
+        
         # Append AnnData object to list
         adata_list.append(adata)
     
@@ -111,6 +122,7 @@ def load_10x_h5_to_anndata(file_paths, sample_names=None, combine=False):
         return adata_combined
     
     return adata_list
+
 
 
 
@@ -158,13 +170,15 @@ import numpy as np
 # List of file paths for 10x .h5 files
 file_paths = ["/rds/projects/c/croftap-mapjagb10/scRNAseq/count/S2519_021LK/outs/per_sample_outs/S2519_021LK/count/sample_filtered_feature_bc_matrix.h5", "/rds/projects/c/croftap-mapjagb10/scRNAseq/count/S2519_021RK/outs/per_sample_outs/S2519_021RK/count/sample_filtered_feature_bc_matrix.h5"]
 
+downsample = 1000
 sample_names = ["S1921LK", "S1921RK"]
 
-combined_adata = load_10x_h5_to_anndata(file_paths, sample_names=sample_names, combine=True)
+adata_list = load_10x_h5_to_anndata(file_paths, sample_names, combine=True, downsample=downsample)
 
 combined_adata.var_names_make_unique()
 combined_adata.obs_names_make_unique()
 
+#optoinal to downsample further if needed
 current_num_cells = combined_adata.n_obs
 random_indices = np.random.choice(current_num_cells, 2000, replace=False)
 combined_adata_small = combined_adata[random_indices].copy()
