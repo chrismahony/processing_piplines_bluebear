@@ -194,7 +194,7 @@ geoms_all <- list()
 for (i in 1:length(data)){
   
 #Need a column called 'x' and 'y' and 'cell' to draw cells
-data[[i]]$cell <- data[[i]]$cell_id_new
+data[[i]]$cell <- data[[i]]$cell_id
 #data[[i]]$x <- data[[i]]$x_location
 #data[[i]]$y <- data[[i]]$y_location
 
@@ -247,7 +247,64 @@ combined_df %>% as.data.frame %>%
 
 ```
 
-7. Next make a Seurt object. Need to gof from tx tables to count tables to processed data merged together
+
+OPTIONAL (experimental and needs further testing)
+
+Darw neuclei booundaries based on tx found in neuclei and remove cells with no tx in neucli
+
+
+```R
+
+data_nuc <- list()
+geoms_nuc <- list()
+
+for (i in 1:3){
+  data[[i]]$cell <- data[[i]]$cell_id
+data_nuc[[i]] <- data[[i]] %>% filter(overlaps_nucleus == 1)
+  geoms_nuc[[i]] <- cellgeoms_with_area_centroid_fast(data_nuc[[i]])
+
+}
+
+
+combined_df_nuc <- do.call(rbind, geoms_nuc)
+
+combined_df_nuc %>% as.data.frame %>% 
+    ggplot()+
+     geom_sf(aes(geometry = geometry, fill = area), alpha = 0.7,
+              color = "black")+theme_minimal()
+
+
+colnames(combined_df_nuc)[colnames(combined_df_nuc) == "geometry"] <- "geometry_nuc"
+colnames(combined_df_nuc)[colnames(combined_df_nuc) == "area"] <- "area_nuc"
+colnames(combined_df)[colnames(combined_df) == "geometry"] <- "geometry_cell"
+
+
+df_new <- merge(combined_df_nuc[c(1:2,4)], combined_df, by="cell")
+
+
+combined_df %>% as.data.frame %>% 
+    ggplot()+
+     geom_sf(aes(geometry = geometry_cell), alpha = 0.7,
+              color = "black")+theme_minimal()
+
+
+df_new %>% as.data.frame %>% 
+ggplot() +
+  geom_sf(aes(geometry = geometry_cell), fill = "red", alpha = 0.5, color = "black") +
+  geom_sf(aes(geometry = geometry_nuc), fill = "blue") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Plotting Two Geometry Columns")+xlim(2400,2800)+ylim(200,600)
+
+
+
+```
+
+
+
+
+
+7. Next make a Seurat object. Need to gof from tx tables to count tables to processed data merged together
 
 First defefine useful functions
 
