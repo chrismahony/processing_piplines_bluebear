@@ -261,7 +261,7 @@ geoms_nuc <- list()
 for (i in 1:3){
   data[[i]]$cell <- data[[i]]$cell_id
 data_nuc[[i]] <- data[[i]] %>% filter(overlaps_nucleus == 1)
-  geoms_nuc[[i]] <- cellgeoms_with_area_centroid_fast(data_nuc[[i]])
+  geoms_nuc[[i]] <- cellgeoms_with_area_centroid_slow(data_nuc[[i]])
 
 }
 
