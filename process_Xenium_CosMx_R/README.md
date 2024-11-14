@@ -297,6 +297,13 @@ ggplot() +
   ggtitle("Plotting Two Geometry Columns")+xlim(2400,2800)+ylim(200,600)
 
 
+df_new$nuc_ratio <- df_new$area_nuc/df_new$area
+ggplot(df_new, aes(x = nuc_ratio)) +
+  geom_histogram(binwidth = 0.01, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of Column Name", x = "Column Name", y = "Frequency") +
+  theme_minimal()+xlim(0,1)
+
+
 
 ```
 
