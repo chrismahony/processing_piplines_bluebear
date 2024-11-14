@@ -31,7 +31,7 @@ source my-virtual-env-${BB_CPU}/bin/activate
 pip install scanpy
 pip install bbknn
 pip install scikit-image
-pip install git+https://github.com/chrismahony/mcseqy.git
+#pip install git+https://github.com/chrismahony/mcseqy.git #ignore for now
 
 ```
 
