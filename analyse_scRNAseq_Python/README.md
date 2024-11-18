@@ -31,6 +31,9 @@ source my-virtual-env-${BB_CPU}/bin/activate
 pip install scanpy
 pip install bbknn
 pip install scikit-image
+pip install igraph
+pip install louvain
+pip intall leidenlg
 #pip install git+https://github.com/chrismahony/mcseqy.git #ignore for now
 
 ```
@@ -173,16 +176,16 @@ file_paths = ["/rds/projects/c/croftap-mapjagb10/scRNAseq/count/S2519_021LK/outs
 downsample = 1000
 sample_names = ["S1921LK", "S1921RK"]
 
-adata_list = load_10x_h5_to_anndata(file_paths, sample_names, combine=True, downsample=downsample)
+combined_adata = load_10x_h5_to_anndata(file_paths, sample_names, combine=True, downsample=downsample)
 
 combined_adata.var_names_make_unique()
 combined_adata.obs_names_make_unique()
 
 #optoinal to downsample further if needed
-current_num_cells = combined_adata.n_obs
-random_indices = np.random.choice(current_num_cells, 2000, replace=False)
-combined_adata_small = combined_adata[random_indices].copy()
-combined_adata_small
+#current_num_cells = combined_adata.n_obs
+#random_indices = np.random.choice(current_num_cells, 2000, replace=False)
+#combined_adata_small = combined_adata[random_indices].copy()
+#combined_adata_small
 
 
 ```
@@ -214,14 +217,14 @@ sc.pl.violin(
 
 ```Python
 
-sc.pp.filter_cells(combined_adata_small, min_genes=200)
-sc.pp.filter_cells(combined_adata_small, max_genes=7000)
-sc.pp.filter_genes(combined_adata_small, min_cells=3)
-combined_adata_small = combined_adata_small[combined_adata_small.obs['pct_counts_mt'] < 10, :]
-sc.pp.scrublet(combined_adata_small, batch_key="sample")
-mask = ~combined_adata_small.obs['predicted_doublet']
-combined_adata_small = combined_adata_small[mask].copy()
-combined_adata_small
+sc.pp.filter_cells(combined_adata, min_genes=200)
+sc.pp.filter_cells(combined_adata, max_genes=7000)
+sc.pp.filter_genes(combined_adata, min_cells=3)
+combined_adata = combined_adata[combined_adata.obs['pct_counts_mt'] < 10, :]
+sc.pp.scrublet(combined_adata, batch_key="sample")
+mask = ~combined_adata.obs['predicted_doublet']
+combined_adata = combined_adata[mask].copy()
+combined_adata
 
 ```
 
@@ -229,8 +232,8 @@ combined_adata_small
 11. Process and batch corerect
 
 ```Python
-combined_adata_small = preprocess_and_analyze(
-    combined_adata_small, 
+combined_adata = preprocess_and_analyze(
+    combined_adata, 
     n_top_genes=2000, 
     batch_correction=True, 
     batch_key="sample"
@@ -245,13 +248,13 @@ combined_adata_small = preprocess_and_analyze(
 resolution = 0.1
 max_resolution = 2.0
 while resolution <= max_resolution:
-    sc.tl.louvain(combined_adata_small, resolution=resolution, key_added=f'louvain_{resolution:.1f}')
-    num_clusters = combined_adata_small.obs[f'louvain_{resolution:.1f}'].nunique()
+    sc.tl.louvain(combined_adata, resolution=resolution, key_added=f'louvain_{resolution:.1f}')
+    num_clusters = combined_adata.obs[f'louvain_{resolution:.1f}'].nunique()
     print(f"Resolution: {resolution:.1f}, Number of clusters: {num_clusters}")
     
     if num_clusters == 8:
         print(f"Running sc.tl.rank_genes_groups for resolution {resolution:.1f}")
-        sc.tl.rank_genes_groups(combined_adata_small, groupby=f'louvain_{resolution:.1f}', method='t-test')
+        sc.tl.rank_genes_groups(combined_adata, groupby=f'louvain_{resolution:.1f}', method='t-test')
         break
     
     
@@ -269,14 +272,14 @@ if resolution > max_resolution:
 ```Python
 
 sc.pl.umap(
-    combined_adata_small,
+    combined_adata,
     color=["louvain_0.2", "sample"],
     legend_loc="on data",
 )
 
 
 sc.pl.rank_genes_groups_dotplot(
-    combined_adata_small, groupby="louvain_1.0", standard_scale="var", n_genes=10
+    combined_adata, groupby="louvain_1.0", standard_scale="var", n_genes=10
 )
 
 ```
@@ -285,7 +288,7 @@ sc.pl.rank_genes_groups_dotplot(
 
 ```Python
 
-combined_adata_small.obs["cell_types"] = combined_adata_small.obs["louvain_0.2"].map(
+combined_adata.obs["cell_types"] = combined_adata.obs["louvain_0.2"].map(
     {
         "0": "Tcells",
         "1": "fibs",
@@ -298,11 +301,11 @@ combined_adata_small.obs["cell_types"] = combined_adata_small.obs["louvain_0.2"]
     }
 )
 
-sc.tl.rank_genes_groups(combined_adata_small, groupby="cell_types", method="wilcoxon")
+sc.tl.rank_genes_groups(combined_adata, groupby="cell_types", method="wilcoxon")
 
 
 sc.pl.rank_genes_groups_dotplot(
-    combined_adata_small, groupby="cell_types", standard_scale="var", n_genes=10
+    combined_adata, groupby="cell_types", standard_scale="var", n_genes=10
 )
 
 ```
