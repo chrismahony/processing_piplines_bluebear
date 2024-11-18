@@ -77,9 +77,6 @@ import scanpy as sc
 ```Python
 
 import scanpy as sc
-from pathlib import Path
-
-import scanpy as sc
 import numpy as np
 from pathlib import Path
 
@@ -136,8 +133,6 @@ def load_10x_h5_to_anndata(file_paths, sample_names=None, combine=False, downsam
 
 
 
-import scanpy as sc
-
 def preprocess_and_analyze(adata, n_top_genes=2000, batch_correction=False, batch_key="sample"):
     """
     Preprocesses the AnnData object and performs PCA and UMAP analysis.
@@ -175,7 +170,6 @@ def preprocess_and_analyze(adata, n_top_genes=2000, batch_correction=False, batc
 
 ```Python
 
-import numpy as np
 # List of file paths for 10x .h5 files
 file_paths = ["/rds/projects/c/croftap-mapjagb10/scRNAseq/count/S2519_021LK/outs/per_sample_outs/S2519_021LK/count/sample_filtered_feature_bc_matrix.h5", "/rds/projects/c/croftap-mapjagb10/scRNAseq/count/S2519_021RK/outs/per_sample_outs/S2519_021RK/count/sample_filtered_feature_bc_matrix.h5"]
 
