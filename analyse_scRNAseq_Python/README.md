@@ -1,5 +1,11 @@
 # Analysing scRNAseq data using Python and Scanpy
 
+Before you start: Optional- Running Cellbender
+
+e.g. here:
+https://github.com/chrismahony/processing_piplines_bluebear/blob/main/analyse_scRNAseq_Python/cellbender.txt
+
+
 1. To install Python modules using bluebear you must follow this: https://docs.bear.bham.ac.uk/bluebear/software/self_installs_python/#creating-a-virtual-environment-and-installing-a-python-module
 !!! Do not just pip install in a python enivroment!!!
 
