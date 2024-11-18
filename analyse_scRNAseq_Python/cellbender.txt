@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH --ntasks 50
+#SBATCH --time 48:0:0
+#SBATCH --mail-type ALL
+#SBATCH --mem 100G
+#SBATCH --account=croftap-XXX
+
+set -e
+module purge; module load bluebear
+module load CellBender/0.2.0-foss-2021a-CUDA-11.3.1
+
+
+cellbender remove-background \
+     --input ./path/raw_feature_bc_matrix.h5 \
+     --output ./path/cellbender/sample1_cellbender.h5
