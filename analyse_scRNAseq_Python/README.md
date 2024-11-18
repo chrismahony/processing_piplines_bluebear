@@ -315,7 +315,11 @@ sc.pl.rank_genes_groups_dotplot(
 
 ```Python
 #save
-adata.write("/my/path/output_file.h5ad")
+combined_adata.write('/my_path/combined_adata.h5ad')
+
+#read
+combined_adata = sc.read("/my_path/combined_adata.h5ad")
+
 
 ```
 
