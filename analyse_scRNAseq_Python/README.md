@@ -323,3 +323,14 @@ combined_adata = sc.read("/my_path/combined_adata.h5ad")
 
 ```
 
+
+16. For working with larger data sets need to run through sbatch, set up the python script as in:
+
+process.py
+
+That is attahced in this folder
+
+
+17. The set up the sbatch script to ecxcut this:
+
+run.txt
