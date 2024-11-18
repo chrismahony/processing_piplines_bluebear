@@ -190,6 +190,20 @@ combined_adata.obs_names_make_unique()
 
 ```
 
+An alternaive way to generate a list of files and sample names:
+
+```Pyhton
+
+# Get file names
+directory = '/path/to/your/directory'
+file_list = [f for f in os.listdir(directory) if f.endswith('.h5') and os.path.isfile(os.path.join(directory, f))]
+base_path = Path("/rds/projects/my_path/")
+file_paths = [base_path / file for file in file_list]
+
+# Get Sample names
+sample_names = [file.split('_')[0] for file in file_list]
+
+```
 
 
 9. Run QC and plot
