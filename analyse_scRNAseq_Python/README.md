@@ -310,3 +310,12 @@ sc.pl.rank_genes_groups_dotplot(
 
 ```
 
+
+15. Save load your anndata object
+
+```Python
+#save
+adata.write("/my/path/output_file.h5ad")
+
+```
+
