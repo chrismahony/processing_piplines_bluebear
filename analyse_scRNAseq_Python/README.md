@@ -47,6 +47,53 @@ pip intall leidenlg
 
 ```
 
+# Troubleshooting with louvain clustering!
+
+I commonly go this error messgae:
+
+``Python
+
+
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+Cell In [10], line 4
+      2 max_resolution = 2.0
+      3 while resolution <= max_resolution:
+----> 4     sc.tl.louvain(combined_adata, resolution=resolution, key_added=f'louvain_{resolution:.1f}')
+      5     num_clusters = combined_adata.obs[f'louvain_{resolution:.1f}'].nunique()
+      6     print(f"Resolution: {resolution:.1f}, Number of clusters: {num_clusters}")
+
+File /rds/projects/c/croftap-mapjag-study/Beth/Python/my-virtual-env-icelake/lib/python3.10/site-packages/legacy_api_wrap/__init__.py:80, in legacy_api.<locals>.wrapper.<locals>.fn_compatible(*args_all, **kw)
+     77 @wraps(fn)
+     78 def fn_compatible(*args_all: P.args, **kw: P.kwargs) -> R:
+     79     if len(args_all) <= n_positional:
+---> 80         return fn(*args_all, **kw)
+     82     args_pos: P.args
+     83     args_pos, args_rest = args_all[:n_positional], args_all[n_positional:]
+
+File /rds/projects/c/croftap-mapjag-study/Beth/Python/my-virtual-env-icelake/lib/python3.10/site-packages/scanpy/tools/_louvain.py:176, in louvain(adata, resolution, random_state, restrict_to, key_added, adjacency, flavor, directed, use_weights, partition_type, partition_kwargs, neighbors_key, obsp, copy)
+    174 if use_weights:
+    175     partition_kwargs["weights"] = weights
+--> 176 if Version(louvain.__version__) < Version("0.7.0"):
+    177     louvain.set_rng_seed(random_state)
+    178 else:
+
+AttributeError: module 'louvain' has no attribute '__version__'
+
+```
+
+
+And was solved by running this:
+
+
+```Python
+import louvain
+louvain.__version__ = "0.8.2"
+```
+
+
+
+
 
 5. Next start a Jupitylab session here: https://portal.bear.bham.ac.uk/pun/sys/dashboard/batch_connect/sessions
 !!!Make sure you select the same version of Python that you loaded above, in this case it was 3.10.4!!!
