@@ -240,6 +240,26 @@ combined_adata.obs_names_make_unique()
 
 ```
 
+
+Add in further meta.data from csv file
+
+```Python
+
+metadata = pd.read_csv("/my_path/metadata.csv")
+adata.obs["sample"] = adata.obs["sample"].astype(str)
+
+for column in metadata.columns:
+    if column != "sample":  # Skip the sample column itself
+        combined_adata.obs[column] = combined_adata.obs["sample"].map(
+            metadata.set_index("sample")[column]
+        )
+
+combined_adata
+```
+
+
+
+
 An alternaive way to generate a list of files and sample names:
 
 ```Pyhton
