@@ -17,7 +17,7 @@ library(spatstat.geom)
 library(igraph)
 library(Matrix)
 
-source("/rds/projects/c/croftap-mapjagx1/analysis/niches_int/repeat_clean/functions.txt")
+source("/rds/projects/c/croftap-mapjagx1/analysis/niches_int/repeat_clean/functions.txt")  # Your path to functions.txt, this file is found in this repo with all functions
 
 
 ```
@@ -126,7 +126,7 @@ txfile[[i]]
 ver <- process_voronoi_data(txfile, meta_list)
 glass_gridded_ls <- process_voronoi_and_glass(ver, txfile)
 res <- process_voronoi_and_gcmat(ver, txfile, glass_gridded_ls$cellgeoms_fov)
-obj_ksweep <- process_voronoi_and_seurat(res)
+obj_ksweep <- process_voronoi_and_seurat(res, max_k = 10)  #adjust max_k as required
 
 ```
 
