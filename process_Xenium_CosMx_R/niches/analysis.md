@@ -273,7 +273,8 @@ objH[[10]]$metadata %>% as.data.frame() %>% filter(SampleID == "D2518_24") %>%  
   geom_sf(aes(geometry = polygon_centroid, color=clust1), alpha = 0.7) + 
             ggtitle("Tissue regions")+facet_wrap("SampleID", ncol=4) +xlim(900,3600)+ylim(5500,8200)
 ```
-![Example plot](/niches/Figure_gh copy.pdf)
+
+<img src="/niches/Figure_gh copy.pdf" alt="Analysis Demo" width="600">
 
 
 11. Now add Cluster ID onto the geoms object and examine
