@@ -251,3 +251,20 @@ geoms_final[["D2518_36_Z3"]] %>% as.data.frame %>%
     panel.grid.major = element_blank())#+xlim(2100,2300)+ylim(4370,4550)
 
 ```
+
+
+
+12. Its possible that your will need to subset out a cluster and subcluster to refine analysis
+
+13. Add details to Seurat object and caclulate porportion of cells in each nich
+
+```R
+
+
+
+
+
+
+```
+
+
