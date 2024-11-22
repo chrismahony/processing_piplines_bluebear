@@ -274,7 +274,7 @@ objH[[10]]$metadata %>% as.data.frame() %>% filter(SampleID == "D2518_24") %>%  
             ggtitle("Tissue regions")+facet_wrap("SampleID", ncol=4) +xlim(900,3600)+ylim(5500,8200)
 ```
 
-<img src="/niches/Figure_gh copy.pdf" alt="Analysis Demo" width="600">
+<img src="/Figure_gh_copy.pdf" alt="Analysis Demo" width="600">
 
 
 11. Now add Cluster ID onto the geoms object and examine
