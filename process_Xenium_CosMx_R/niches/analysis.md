@@ -318,17 +318,42 @@ geoms_final[["D2518_36_Z3"]] %>% as.data.frame %>%
 
 
 
-12. Its possible that your will need to subset out a cluster and subcluster to refine analysis
+12. Its possible that your will need to subset out a cluster and subcluster to refine analysis, try step #13 and then recluster as required, or increase cluster resolution
 
 13. Add details to Seurat object and caclulate porportion of cells in each nich
 
 ```R
 
+seurat_meta <- objH[[10]]$metadata %>% select(c("cellID", "clust1"))
+rownames(seurat_meta) <- seurat_meta$cellID
+seurat_meta$cellID <- NULL
 
+xenium_chrissy <- AddMetaData(xenium_chrissy, seurat_meta)
+
+predictions <- table(xenium_chrissy$global_final, xenium_chrissy$clust1)
+predictions <- predictions/rowSums(predictions)  # normalize for number of cells in each cell type
+predictions <- as.data.frame(predictions) %>% na.omit()
+ggplot(predictions, aes(Var1, Var2, fill = Freq)) + geom_tile() + scale_fill_gradient(name = "Fraction of cells",
+    low = "#ffffc8", high = "#7d0025") + xlab("niche label") + ylab("cell type") +
+    theme_cowplot() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+
+
+predictions2<-predictions %>% 
+  pivot_wider(names_from = Var2, values_from = Freq) %>% 
+  as.data.frame() 
+
+library(tidyverse)
+predictions2 <-predictions2 %>% remove_rownames %>% column_to_rownames(var="Var1")
+
+
+predictions2 %>% scale() %>% 
+Heatmap( cluster_rows = T, colorRamp2(c(-max(predictions2), 0, max(predictions2)), c("lightblue", "white", "darkred")), cluster_columns= T, border=T)
 
 
 
 
 ```
 
+<img src="/process_Xenium_CosMx_R/niches/Figure_gh2.pdf" alt="Example plot" width="600">
 
