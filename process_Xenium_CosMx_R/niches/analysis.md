@@ -274,7 +274,7 @@ objH[[10]]$metadata %>% as.data.frame() %>% filter(SampleID == "D2518_24") %>%  
             ggtitle("Tissue regions")+facet_wrap("SampleID", ncol=4) +xlim(900,3600)+ylim(5500,8200)
 ```
 
-<img src="/process_Xenium_CosMx_R/niches/Figure_gh_copy.pdf" alt="Example plot" width="600">
+<img src="/process_Xenium_CosMx_R/niches/Figure_gh_niches.jpg" alt="Example plot" width="600">
 
 
 11. Now add Cluster ID onto the geoms object and examine
@@ -355,5 +355,5 @@ Heatmap( cluster_rows = T, colorRamp2(c(-max(predictions2), 0, max(predictions2)
 
 ```
 
-<img src="/process_Xenium_CosMx_R/niches/Figure_gh2.pdf" alt="Example plot" width="600">
+<img src="/process_Xenium_CosMx_R/niches/Figure_gh2_ht.jpg" alt="Example plot" width="600">
 
