@@ -9,6 +9,7 @@ Just select the type of analysis you need to do:
 
 
 
+
 ## Downloading data and preprocessing
 
 1. Downloading data from Novogene: [dowloand_data_novogene/README.md](https://github.com/chrismahony/processing_piplines_bluebear/tree/main/dowloand_data_novogene)
@@ -26,6 +27,10 @@ Just select the type of analysis you need to do:
 4. Processing scATACseq data: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_scATACseq/README.md
 
 
+5. Processing Geomix data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_GeoMx
+
+
+
 ## Analysing data (R)
 
 1. Analysing bulk RNAseq (R):https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analysis_bulk_RNAseq
@@ -40,14 +45,14 @@ Just select the type of analysis you need to do:
 
 
 
+4. Analysing Geomix data (R):  https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_GeoMx
+
+
+
+
 ## Analysing data (Python)
 
 1. Analysing scRNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_scRNAseq_Python
 
 
 
-## Processing Geomix data and analysing (R)
-
-1. Processing Geomix data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_GeoMx
-
-2. Analysing Geomix data (R):  https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_GeoMx
