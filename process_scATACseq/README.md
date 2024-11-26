@@ -365,6 +365,6 @@ cellranger-atac reanalyze --id=all_aggr_mapjag_reanalyze \
 
 10. Now ready for analysis in R
 
-
+https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_scATACseq
 
 
