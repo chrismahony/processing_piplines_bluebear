@@ -161,6 +161,8 @@ ATAC2518_29,/rds/projects/c/croftap-mapjagb8/scATACseq/count/ATAC2518_029/outs/f
 
    To call peaks on your data using MACS2 a sbatch script can be run as below:
 
+   -g should be set at 1.87e9 for mouse
+
 
    ```bash
 
@@ -183,7 +185,6 @@ module load MACS2/2.2.9.1-foss-2022a
 mkdir output_macs2
 mkdir tmp
 
-# -g should be set at 1.87e9 for mouse
 macs2 callpeak -t /path1/possorted_bam.bam /path2/possorted_bam.bam /path3/possorted_bam.bam \
 -n all_peaks -g 2.8E9 \
 --outdir ./output_macs2 \
