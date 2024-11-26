@@ -274,12 +274,59 @@ ALL_PEAKS_annie_peaks$V7 %>% median()/4
 
 [1] 0.93735
 
+```
 
+Singlal strength cutoff of 1 is a little low. Typically I would apply a threshold of 1.5 - 2
+
+Next apply these cutt off in bash.
+
+```bash
+
+cd /rds/projects/your_path/
+
+# Remove all peaks in col 9 with value < 3 and pipe to test.txt
+cat ALL_PEAKS_MAPJAG_peaks.narrowPeak | awk '$9 > 3' > test.txt 
+
+# Remove all peaks in col 7 with value < 1.5 and pipe to test2.txt
+cat test.txt | awk '$7 > 1.5' > test2.txt
+
+# Subset to columns 1,2,3
+cat test2.txt | cut -f 1-3 > test3.txt 
+
+# Pipe test3 to a narrowPeak file 
+mv test3.txt ALL_peaks_MAPJAG_filtered.narrowPeak 
+
+# Remove all intermediate test files
+rm test*.* 
+
+```
+
+Next for cell ranger reanalyze, the peaks need to be in the correct order. To do this take the origional peak file and subset based on the filterest file from above
 
 
 ```bash
 
+rep -Fwf ALL_peaks_MAPJAG_filtered.narrowPeak ALL_PEAKS_MAPJAG_peaks.narrowPeak > ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak
 
+
+```
+
+Now to remove all peaks that are in unlocalised scafolds or in mitochonrial chromosomes
+
+
+```bash
+
+awk '$1 ~ /^chr[0-9]/' ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak > ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak
+
+
+```
+
+Finally, make sure the peak file is in dos format
+
+
+```bash
+
+dos2unix ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak
 
 ```
 
