@@ -195,6 +195,88 @@ macs2 callpeak -t /path1/possorted_bam.bam /path2/possorted_bam.bam /path3/posso
 
 8. Filter peaks and remove low quality ones
 
+
+First, open the .NARROWPEAK file and delete all colnames and other information above peaks (if there are anything)
+
+Then start an IGV session using Bluebear ondemand.
+
+Select Hg38 as a genome.
+
+Then File > Load from file > your.NARROWPEAK file
+ 
+Next in IGV, search for some key genes, e.g. COL1A1 etc
+
+Look out for peaks with poor Signal Value and qValue to dertmine appropriate cuttoffs
+
+This can be hard so another option is reading the file into R and looking at histograms
+
+
+```R
+
+ALL_PEAKS_annie_peaks <- read.delim("/rds/projects/c/croftap-mapjag-batch5/scATAC/aggr/ALL_PEAKS_annie_peaks.narrowPeak", header=FALSE)
+
+ggplot(ALL_PEAKS_annie_peaks, aes(x = V9)) +
+  geom_histogram(
+    bins = 100, 
+    aes(y = ..density.., fill = ..count..), 
+    color = "black", 
+    alpha = 0.7
+  ) +
+  scale_fill_gradient(low = "blue", high = "red", name = "Peak Count") +
+  labs(
+    title = "Distribution of qValues in Peaks",
+    x = "nCount Peaks",
+    y = "Density"
+  ) +
+  theme_minimal(base_size = 15) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 18),
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )+theme_ArchR()
+
+
+ALL_PEAKS_annie_peaks$V9 %>% median()/4
+
+> [1] 3.212112
+
+```
+
+A cutoff of 3 for the qValue is resonable
+
+
+
+```R
+
+
+ggplot(ALL_PEAKS_annie_peaks, aes(x = V7)) +
+  geom_histogram(
+    bins = 100, 
+    aes(y = ..density.., fill = ..count..), 
+    color = "black", 
+    alpha = 0.7
+  ) +
+  scale_fill_gradient(low = "blue", high = "red", name = "Peak Count") +
+  labs(
+    title = "Distribution of Singal strength in Peaks",
+    x = "nCount Peaks",
+    y = "Density"
+  ) +
+  theme_minimal(base_size = 15) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 18),
+    legend.position = "right",
+    panel.grid.minor = element_blank()
+  )+theme_ArchR()
+
+
+ALL_PEAKS_annie_peaks$V7 %>% median()/4
+
+[1] 0.93735
+
+
+
+
 ```bash
 
 
