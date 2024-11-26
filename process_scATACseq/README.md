@@ -164,7 +164,7 @@ ATAC2518_29,/rds/projects/c/croftap-mapjagb8/scATACseq/count/ATAC2518_029/outs/f
    -g should be set at 1.87e9 for mouse
 
 
-   ```bash
+```bash
 
 #!/bin/bash
 #SBATCH -n 20                       
@@ -190,7 +190,7 @@ macs2 callpeak -t /path1/possorted_bam.bam /path2/possorted_bam.bam /path3/posso
 --outdir ./output_macs2 \
 --tempdir ./tmp
 
-   ``
+```
 
 
 8. Filter peaks and remove low quality ones
