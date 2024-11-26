@@ -56,12 +56,11 @@ module load SAMtools/1.15.1-GCC-11.2.0
 # Now sort and remove PCR duplicates
 samtools view -bS sample1_unsorted.sam | samtools sort - >sample1_sorted.bam
 samtools view -bq 1 sample1_sorted.bam > unique_sample1_sorted.bam
+samtools index unique_sample1_sorted.bam
 
 ```
 
-For ATACseq, modify the last part to remove reads in mt regions
 
-```bash
 
 5. For ATACseq, now remove peaks in mt chromosomes
 
@@ -73,7 +72,7 @@ module load bear-apps/2021b
 module load SAMtools/1.15.1-GCC-11.2.0
 
 samtools idxstats unique_sample1_sorted.bam | cut -f1 | grep -v Mt | xargs samtools view --threads 7 -b unique_sample1_sorted.bam > nomt_unique_sample1_sorted.bam
-
+samtools index nomt_unique_sample1_sorted.bam
 ```
 
 
@@ -107,6 +106,9 @@ macs2 callpeak -t /path1/unique_sample1_sorted.bam /path2/unique_sample2_sorted.
 --tempdir ./tmp
 
 ```
+
+Now the resulting .narrowPeak file and the .bam files can be loaded into IGV and visulised directly to examine each sample.
+
 
 
 7. Next (only for ATACseq), remove blacklist regions and quanitfy reads in peaks
