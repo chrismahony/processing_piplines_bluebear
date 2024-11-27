@@ -1,3 +1,187 @@
+cellgeoms_with_area_centroid_slow <- function(segfile) {
+  # Step 1: Calculate transcripts per cell
+  transcriptspercell <- furrr::future_map_dfr(
+    .x = unique(segfile$cell),
+    .f = ~ data.frame(
+      cell = .x,
+      num_transcripts = sum(segfile$cell == .x)
+    ),
+    .options = furrr_options(seed = TRUE)
+  )
+
+  # Step 2: Filter cells with more than 5 transcripts
+  cellidx <- transcriptspercell$cell[transcriptspercell$num_transcripts > 5]
+
+  # Step 3: Calculate geometry for each cell using triangulation
+  segfile.new <- furrr::future_map_dfr(
+    .x = cellidx,
+    .f = function(.x) {
+      res <- st_as_sf(segfile[segfile$cell == .x, c('x', 'y')], coords = c('x', 'y')) %>%
+        st_union() %>%  # st_union is needed here
+        ct_triangulate()
+      resdf <- data.frame(cell = .x, geometry = res)
+      return(resdf)
+    },
+    .options = furrr_options(seed = TRUE)
+  )
+
+  # Step 4: Finalize cell geometries by merging geometries for each cell
+  cellgeoms_final <- segfile.new$geometry %>%
+    furrr::future_map(purrr::reduce, st_union, .options = furrr_options(seed = TRUE)) %>%
+    st_sfc() %>%
+    as.data.frame()
+
+  # Step 5: Add transcript count information to the geometry data
+  cellgeoms_final <- cellgeoms_final %>%
+    cbind(transcriptspercell[transcriptspercell$cell %in% cellidx, ])
+
+  # Step 6: Calculate area and centroids for each geometry
+  # Calculate the area of each geometry
+  cellgeoms_final$area <- st_area(cellgeoms_final$geometry)
+
+  # Calculate the centroid of each geometry
+  centroids <- st_centroid(cellgeoms_final$geometry)
+
+  # Extract X and Y coordinates of the centroid
+  centroid_coords <- st_coordinates(centroids)
+  cellgeoms_final$centroid_x <- centroid_coords[, 1]
+  cellgeoms_final$centroid_y <- centroid_coords[, 2]
+
+  # Return the final data frame with area and centroid columns
+  return(cellgeoms_final)
+}
+
+
+
+cellgeoms_with_area_centroid_fast <- function(segfile) {
+  # Step 1: Calculate transcripts per cell
+  transcriptspercell <- furrr::future_map_dfr(
+    .x = unique(segfile$cell),
+    .f = ~ data.frame(
+      cell = .x,
+      num_transcripts = sum(segfile$cell == .x)
+    ),
+    .options = furrr_options(seed = TRUE)
+  )
+
+  # Step 2: Filter cells with more than 5 transcripts
+  cellidx <- transcriptspercell$cell[transcriptspercell$num_transcripts > 5]
+
+  # Step 3: Calculate and union geometry for each cell
+  segfile.new <- furrr::future_map_dfr(
+    .x = cellidx,
+    .f = function(.x) {
+      cell_data <- segfile[segfile$cell == .x, c('x', 'y')]
+      # Create an sf object and triangulate
+      triangles <- st_as_sf(cell_data, coords = c('x', 'y')) %>%
+        st_combine() %>%
+        ct_triangulate() %>%
+        st_union()  # Combine triangles into one geometry per cell
+      data.frame(cell = .x, geometry = st_geometry(triangles))
+    },
+    .options = furrr_options(seed = TRUE)
+  )
+
+  # Step 4: Add transcript count information to the geometry data
+  cellgeoms_final <- dplyr::left_join(segfile.new, transcriptspercell, by = "cell")
+
+  # Step 5: Calculate area and centroids for each geometry
+  cellgeoms_final <- cellgeoms_final %>%
+    mutate(
+      area = st_area(geometry),
+      centroid = st_centroid(geometry)
+    )
+
+  # Extract X and Y coordinates of the centroid
+  centroid_coords <- st_coordinates(cellgeoms_final$centroid)
+  cellgeoms_final$centroid_x <- centroid_coords[, 1]
+  cellgeoms_final$centroid_y <- centroid_coords[, 2]
+
+  # Remove the temporary centroid column
+  cellgeoms_final$centroid <- NULL
+
+  # Return the final data frame with area and centroid columns
+  return(cellgeoms_final)
+}
+
+
+make_count_mtx <- function(genes, cells, remove_bg = TRUE) {
+    if (remove_bg) {
+        idx <- cells != 0  # Logical indexing is faster than `which`
+        genes <- genes[idx]
+        cells <- cells[idx]
+    }
+
+    # Retrieve unique levels once for efficiency
+    unique_genes <- unique(genes)
+    unique_cells <- unique(cells)
+    
+    # Map genes and cells to integer indices
+    gene_idx <- match(genes, unique_genes)
+    cell_idx <- match(cells, unique_cells)
+    
+    # Create sparse matrix
+    counts <- Matrix::sparseMatrix(
+        i = gene_idx, 
+        j = cell_idx, 
+        x = rep(1, length(gene_idx)),  # Each entry is 1
+        dims = c(length(unique_genes), length(unique_cells))
+    )
+    
+    # Set row and column names
+    rownames(counts) <- unique_genes
+    colnames(counts) <- unique_cells
+    
+    return(counts)
+}
+
+process_seurat_data <- function(data, combined_df, num_datasets = 3) {
+  # Create empty lists to store counts and Seurat objects
+  counts <- list()
+  seurats <- list()
+
+  # Loop through each dataset to create count matrices and Seurat objects
+  for (i in 1:num_datasets) {
+    counts[[i]] <- make_count_mtx(genes = data[[i]]$gene, data[[i]]$cell_id_new)
+    seurats[[i]] <- CreateSeuratObject(counts = counts[[i]], project = unique(data[[i]]$donor_FOV))
+  }
+
+  # Merge all Seurat objects
+  all_merged <- merge(x = seurats[[1]], y = seurats[2:length(seurats)])
+
+  # Add cell area metadata
+  cell_area_vector <- setNames(combined_df$area, combined_df$cell)
+  all_merged <- AddMetaData(all_merged, metadata = cell_area_vector, col.name = "cell_area")
+
+  # Remove cells with NA in cell_area
+  na_cells <- all_merged@meta.data[is.na(all_merged@meta.data$cell_area), ]
+  all_merged <- all_merged[, !colnames(all_merged) %in% rownames(na_cells)]
+
+  # Subset based on feature and count thresholds
+  all_merged <- subset(all_merged, subset = nFeature_RNA > round(median(all_merged$nFeature_RNA)/2) &
+                         nCount_RNA > round(median(all_merged$nCount_RNA)/2) &
+                         cell_area > round(median(all_merged$cell_area)/4))
+
+  # Normalize and scale data, find variable features, run PCA and UMAP
+  all_merged <- all_merged %>% 
+    NormalizeData(scale.factor = median(all_merged$nCount_RNA)) %>% 
+    ScaleData() %>% 
+    FindVariableFeatures() %>% 
+    RunPCA() %>% 
+    RunUMAP(dims = 1:40) %>% 
+    FindNeighbors(dims=1:40) %>% 
+    FindClusters(res=c(0.01, 0.05, 0.1, 0.2))
+
+  # Plot UMAP
+  DimPlot(all_merged, raster = FALSE) + NoLegend()
+
+  return(all_merged)
+}
+
+
+
+
+
 pts_to_voronoi = function(x, y, eps=0, bbox=NULL) {
     if (is.null(bbox)) {
         bbox = st_rectangle(min(x) - eps, max(x) + eps, min(y) - eps, max(y) + eps)        
