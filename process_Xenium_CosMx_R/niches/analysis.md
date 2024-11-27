@@ -76,6 +76,7 @@ for (i in 1:length(unique(xenium_chrissy@meta.data$orig.ident))){
 
 names(meta_list) <- unique(xenium_chrissy@meta.data$orig.ident)
 
+```
 
 4. There wil be cells in the txfile that did not pass QC thresholds in the Seurat processing. These need to be reomoved from the txfile. Also from the geoms file (a list of each FOV with geometries for each cell boundry).
 
