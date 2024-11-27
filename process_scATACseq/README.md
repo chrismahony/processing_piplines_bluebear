@@ -7,11 +7,16 @@
 2. Then make a directory call something like 'all_fastqs'. Put all the fastq files from all samples that you want to process. Do not make sub directories, just put all files in the one dir 'all_fastqs'
 
 Make a directory called something like 'count', so your project folder would look like:
+
+```bash
+
 /croftap-XXXX/
 |-- my_project
 | |--fastqs #downloaded fatsqs from novogene
 | |--all_fastqs   #where you put all fastqs
 | |--count   #where you will run the next steps and perform alingment
+
+```
 
 
 You may have a load of sub dirs, each with fastq files in them, if so, open a termonal, cd to where all the sub dirs are and run this to move all the fastq files out:
