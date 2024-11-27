@@ -561,3 +561,305 @@ dimred_and_cluster<-function (clusterobj, do_harmony = FALSE, ...)
 
 
 
+
+
+process_voronoi_data <- function(txfile, meta_list) {
+  voronoi_obj_all <- list()  # Initialize empty list to store results
+  
+  for (i in 1:length(txfile)) {
+    # Generate bounding box for Voronoi tessellation
+    bbox_tx <- st_rectangle(min(txfile[[i]]$x), max(txfile[[i]]$x), min(txfile[[i]]$y), max(txfile[[i]]$y))
+    message("Tessellating FOV ", i)
+    
+    # Generate Voronoi cells for each FOV based on cell centroids
+    cells_voronoi <- pts_to_voronoi(meta_list[[i]]$cell_center_x, meta_list[[i]]$cell_center_y, bbox = bbox_tx)
+    
+    # Add cell IDs to Voronoi polygons
+    cells_voronoi <- cells_voronoi %>% 
+      as.data.frame() %>% 
+      cbind(meta_list[[i]] %>% dplyr::select(cellID, cell_centroid, SampleFOV, SampleID)) %>% 
+      dplyr::rename(polygon = geometry) %>% 
+      dplyr::mutate(tileID = cellID)
+    
+    # Apply alpha shape to Voronoi cells
+    cells_voronoi_alpha_shaped <- alpha_shape_cells(cells_voronoi)
+    
+    # Generate gene count matrix (gcmat) based on Voronoi polygons
+    tfile_voronoi <- txfile[[i]][cell != 0] %>% 
+      st_sf() %>% 
+      st_join(
+        cells_voronoi_alpha_shaped %>% 
+          st_sf() %>% 
+          st_set_geometry("polygon") %>% 
+          dplyr::select(cellID, tileID, polygon),
+        .predicate = st_intersects
+      ) 
+    
+    # Remove tx (transcripts) not belonging to any cells
+    tfile_voronoi <- data.table(tfile_voronoi)[!is.na(tileID)]
+    
+    # Generate gene count matrix (gcmat)
+    gcmat_voronoi <- spatula::tx_to_counts(
+      tfile_voronoi$gene, 
+      tfile_voronoi$cellID, 
+      remove_bg = TRUE
+    )
+    
+    # Prepare Voronoi object with metadata and counts
+    voronoi_obj <- list()
+    voronoi_obj$metadata <- cells_voronoi_alpha_shaped %>% as.data.frame()
+    voronoi_obj$counts <- gcmat_voronoi[, as.character(voronoi_obj$metadata$cellID)]
+    
+    # Add region information to the metadata
+    voronoi_obj$metadata <- voronoi_obj$metadata %>% 
+      dplyr::mutate(region = "tissue")
+    
+    # Store the Voronoi object in the results list
+    voronoi_obj_all[[i]] <- voronoi_obj
+  }
+  
+  return(voronoi_obj_all)  # Return the list of Voronoi objects
+}
+
+
+
+
+
+
+
+process_voronoi_and_glass <- function(voronoi_obj_all, txfile) {
+  
+  # Initialize lists for glass gridded data and cell geometries
+  glass_gridded_ls <- list()
+  cellgeoms_fov <- list()
+  
+  # Loop through each Voronoi object
+  for (i in 1:length(voronoi_obj_all)) {
+    obj <- voronoi_obj_all[[i]]
+    tfile <- txfile[[i]]
+    
+    # Step 1: Define tissue and glass regions
+    tissue_region <- obj$metadata %>% 
+      st_sf() %>% 
+      st_set_geometry("polygon") %>% 
+      st_union() %>% 
+      st_cast("MULTIPOLYGON") %>% 
+      st_buffer(30)
+    
+    fov_region <- st_bbox(c(xmin = min(tfile$x), xmax = max(tfile$x), ymin = min(tfile$y), ymax = max(tfile$y))) %>% 
+      st_as_sfc()
+    
+    glass_region <- st_difference(fov_region, tissue_region) %>% 
+      as.data.frame() %>% 
+      dplyr::mutate(region = "glass")
+    
+    # Check if glass region exists
+    res <- !(spatstat.geom::is.empty(glass_region$geometry))
+    obj$tissue_region <- tissue_region
+    obj$glass_region <- glass_region
+    obj$glass_exists <- res
+    
+    # Step 2: Gridding the glass region if it exists
+    if (obj$glass_exists) {
+      message("Gridding glass for sample ", i, ":")
+      ncounts_glass <- IQR(colSums(obj$counts)) * 2.5
+      glass_gridded_df <- grid_glass(
+        glass_region_input = obj$glass_region, 
+        txfile_input = tfile, 
+        cellgeoms_input = obj$metadata, 
+        by_counts = TRUE, 
+        ncounts = ncounts_glass
+      )
+    } else {
+      message("Not gridding glass: there is no glass beyond the buffered area for sample ", i)
+      glass_gridded_df <- NULL
+    }
+    
+    # Step 3: Process the glass gridded data if it's not null
+    if (!is.null(glass_gridded_df)) {
+      glass_gridded_df <- glass_gridded_df %>% 
+        as.data.frame() %>% 
+        dplyr::rename(polygon = geometry) %>% 
+        dplyr::mutate(
+          polygon_centroid = st_centroid(polygon),
+          polygon_area = st_area(polygon),
+          SampleID = obj$metadata[["SampleID"]] %>% unique(),
+          SampleFOV = obj$metadata[["SampleFOV"]] %>% unique(),
+          FOV = "FOV",
+          region = "glass"
+        )
+      
+      # Append to the glass gridded list
+      glass_gridded_ls[[i]] <- glass_gridded_df
+    }
+    
+    # Step 4: Combine the gridded glass data with the metadata for each sample
+    metadata <- obj$metadata %>%
+      dplyr::select(cellID, tileID, SampleFOV, SampleID, starts_with("polygon"), region)
+    
+    if (length(glass_gridded_ls) > 0) {
+      cellgeoms_fov[[i]] <- bind_rows(metadata, glass_gridded_ls[[i]])
+    } else {
+      cellgeoms_fov[[i]] <- metadata
+    }
+  }
+  
+  # Return both the glass gridded list and the cell geometries list
+  return(list(cellgeoms_fov = cellgeoms_fov, glass_gridded_ls = glass_gridded_ls))
+}
+
+
+
+
+
+
+process_voronoi_and_gcmat <- function(voronoi_obj_all, txfile, cellgeoms_fov, lambda = 0.03, k = 10) {
+  res <- list()  # Initialize an empty list to store results
+  
+  # Loop over the Voronoi objects
+  for (i in 1:length(voronoi_obj_all)) {
+    message("Step 3: Build gcmat")
+    
+    # Remove background transcripts from tissue regions but not from glass
+    txfile_tissue_glass <- txfile[[i]] %>%
+      st_sf() %>%
+      st_join(
+        cellgeoms_fov[[i]] %>%
+          st_set_geometry("polygon") %>%
+          dplyr::select(cellID, tileID, polygon, region),
+        .predicate = st_intersects
+      ) %>%
+      as.data.table()
+
+    txfile_tissue_glass <- txfile_tissue_glass[!is.na(tileID)]
+    txfile_tissue_glass <- txfile_tissue_glass[
+      (cell != 0 & region == "tissue") | (region == "glass")
+    ]
+    
+    # Build gcmat
+    message("Building gcmat")
+    gcmat_tissue_glass <- spatula::tx_to_counts(
+      txfile_tissue_glass$gene,
+      txfile_tissue_glass$tileID,
+      remove_bg = FALSE
+    )
+    message("Done")
+    
+    # Set metadata for the current FOV
+    fov1 <- list()
+    fov1$metadata <- cellgeoms_fov[[i]] %>%
+      subset(tileID %in% colnames(gcmat_tissue_glass)) %>%
+      identity()
+    
+    # Skip processing if the number of rows in metadata is < 5
+    if (nrow(fov1$metadata) < 5) {
+      message("Skipping FOV ", i, " due to insufficient metadata rows (< 5).")
+      next
+    }
+    
+    # Process the sample if nrow >= 5
+    fov1$counts_raw <- gcmat_tissue_glass[, as.character(fov1$metadata$tileID)]
+    fov1$metadata <- fov1$metadata %>%
+      dplyr::mutate(nCounts = colSums(fov1$counts_raw))
+    fov1$metadata$FOV <- 'FOV'
+    
+    # Run diffusion-based adjacency matrix computation
+    res[[i]] <- diffuse_adjmat(
+      fov1$metadata, fov1$counts_raw,
+      lambda = lambda, k = k, verbose = FALSE, cut_connections = TRUE,
+      prune_connections = TRUE, prune_communities = TRUE,
+      community_size_thresh = 4, pxsize = 1, dist_threshold_cells = 50
+    )
+  }
+  
+  # Clean up results: remove NULL and empty metadata entries
+  names(res) <- names(cellgeoms_fov)
+  res_f <- res[!sapply(res, is.null)]
+  res_f2 <- res_f[!sapply(res_f, function(x) nrow(x$metadata) == 0)]
+  
+  # Update names of results with SampleFOV
+  for (i in 1:length(res_f2)) {
+    names(res_f2)[[i]] <- res_f2[[i]]$metadata$SampleFOV %>% unique()
+  }
+  
+  return(res_f2)
+}
+
+
+
+
+
+
+process_voronoi_and_seurat <- function(res_f2, max_k = 10) {
+  
+  # Initialize lists to store results
+  obj_list_k <- list()
+  obj_list_k_seurat_counts <- list()
+  seurats_k_merged <- list()
+  obj_list_k_seurat_RAWcounts <- list()
+  seurats_k_merged_raw <- list()
+  meta_data_all_k_list <- list()
+  obj_ksweep <- list()
+
+  # Loop over the range of k (1 to max_k)
+  for (k in 1:max_k) {
+    
+    # Step 1: Generate collapsed counts for each FOV (i)
+    obj_final <- list()
+    for (i in 1:length(res_f2)) {
+      collapsed_counts <- res_f2[[i]]$counts_raw %*% t(res_f2[[i]]$neighbors_collapsed[[k]]) 
+      colnames(collapsed_counts) <- colnames(res_f2[[i]]$counts_raw)
+      
+      # Store counts, metadata, and raw counts in the obj list
+      obj <- list()
+      obj$counts <- collapsed_counts
+      obj$metadata <- res_f2[[i]]$metadata
+      obj$counts_raw <- res_f2[[i]]$counts_raw
+      
+      obj_final[[i]] <- obj
+    }
+    
+    # Add obj_final for each k to obj_list_k
+    obj_list_k[[k]] <- obj_final
+    
+    # Step 2: Generate Seurat objects for collapsed counts
+    obj_list_k_seurat_counts_tmp <- list()
+    for (i in 1:length(res_f2)) {
+      obj_list_k_seurat_counts_tmp[[i]] <- CreateSeuratObject(counts=obj_list_k[[k]][[i]]$counts)
+    }
+    obj_list_k_seurat_counts[[k]] <- obj_list_k_seurat_counts_tmp
+    seurats_k_merged[[k]] <- merge(x = obj_list_k_seurat_counts[[k]][[1]], y = obj_list_k_seurat_counts[[k]][-1])
+    
+    # Step 3: Generate Seurat objects for raw counts
+    obj_list_k_seurat_RAWcounts_tmp <- list()
+    for (i in 1:length(res_f2)) {
+      obj_list_k_seurat_RAWcounts_tmp[[i]] <- CreateSeuratObject(counts=obj_list_k[[k]][[i]]$counts_raw)
+    }
+    obj_list_k_seurat_RAWcounts[[k]] <- obj_list_k_seurat_RAWcounts_tmp
+    seurats_k_merged_raw[[k]] <- merge(x = obj_list_k_seurat_RAWcounts[[k]][[1]], y = obj_list_k_seurat_RAWcounts[[k]][-1])
+    
+    # Step 4: Combine metadata for each k
+    meta_data_all <- list()
+    for (i in 1:length(res_f2)) {
+      meta_data_all[[i]] <- obj_list_k[[k]][[i]]$metadata
+      meta_data_all[[i]]$polygon <- NULL  # Remove the polygon column
+    }
+    meta_data_all <- rbindlist(meta_data_all, use.names = TRUE)
+    meta_data_all_k_list[[k]] <- meta_data_all
+  }
+
+  # Step 5: Generate obj_ksweep with metadata and counts
+  for (i in 1:length(meta_data_all_k_list)) {
+    tmp_list <- list()
+    tmp_list$metadata <- meta_data_all_k_list[[i]]
+    tmp_list$counts <- seurats_k_merged[[i]]@assays[["RNA"]]@counts
+    tmp_list$counts_raw <- seurats_k_merged_raw[[i]]@assays[["RNA"]]@counts
+    obj_ksweep[[i]] <- tmp_list
+  }
+  
+  # Return only obj_ksweep
+  return(obj_ksweep)
+}
+
+
+
