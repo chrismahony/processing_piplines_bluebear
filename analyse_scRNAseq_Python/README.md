@@ -418,3 +418,13 @@ That is attahced in this folder
 17. The set up the sbatch script to ecxcut this:
 
 run.txt
+
+
+
+18. For further downstream analysis, subset a particular cell type:
+
+```python
+
+subset_adata = adata[adata.obs['cell_type'] == 'T_cells'].copy()
+
+```
