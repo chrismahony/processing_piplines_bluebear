@@ -179,15 +179,15 @@ ATAC2518_29,/rds/projects/c/croftap-mapjagb8/scATACseq/count/ATAC2518_029/outs/f
 set -e
 
 module purge; module load bluebear
-module load bear-apps/2022a
-module load MACS2/2.2.9.1-foss-2022a
+module load bear-apps/2022b
+module load MACS3/3.0.1-foss-2022b
 
-mkdir output_macs2
+mkdir output_macs3
 mkdir tmp
 
-macs2 callpeak -t /path1/possorted_bam.bam /path2/possorted_bam.bam /path3/possorted_bam.bam \
+macs3 callpeak -t /path1/possorted_bam.bam /path2/possorted_bam.bam /path3/possorted_bam.bam \
 -n all_peaks -g 2.8E9 \
---outdir ./output_macs2 \
+--outdir ./output_macs3 \
 --tempdir ./tmp
 
 ```
