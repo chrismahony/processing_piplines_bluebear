@@ -274,3 +274,13 @@ combined_df %>%
 
 https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/Plotting_spatial_data.md
 
+
+
+13. Proximity enrichment once cell labels finalised
+
+ https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/proximity_analysis/readme.md
+
+
+14. Labeling cells and subtyping
+
+    TBC
