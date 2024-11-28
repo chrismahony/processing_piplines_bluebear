@@ -66,7 +66,7 @@ Take care if you have a tx table across mutiple donors
 library(furrr)
 library(sfdct)
 library(sf)
-source("/path/functions.txt")  # this can be found here: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/niches/functions.txt
+source("/path/functions_init.txt")  # this can be found here: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/functions_init.txt
 
 
 ```
@@ -208,8 +208,7 @@ Make sure you have the functions you need loaded
 
 ```R
 
-source("/path/functions.txt")  # this can be found here: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/niches/functions.txt
-
+source("/path/functions_init.txt")  # this can be found here: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/functions_init.txt
 ```
 
 8. Now process data
