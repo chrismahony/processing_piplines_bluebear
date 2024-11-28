@@ -306,6 +306,22 @@ rm test*.*
 
 ```
 
+
+For convienvce, this is written in a complete pipeline:
+
+
+```bash
+
+cat ALL_PEAKS_MAPJAG_peaks.narrowPeak | awk '$9 > 3' > test.txt 
+cat test.txt | awk '$7 > 1.5' > test2.txt
+cat test2.txt | cut -f 1-3 > test3.txt 
+mv test3.txt ALL_peaks_MAPJAG_filtered.narrowPeak 
+rm test*.* 
+
+```
+
+
+
 Next for cell ranger reanalyze, the peaks need to be in the correct order. To do this take the origional peak file and subset based on the filterest file from above
 
 
