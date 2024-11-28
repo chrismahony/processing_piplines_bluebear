@@ -49,6 +49,10 @@ Just select the type of analysis you need to do:
 
 
 
+5. Analysing CosMx/Xenium data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_Xenium_CosMx_R
+
+
+
 
 ## Analysing data (Python)
 
