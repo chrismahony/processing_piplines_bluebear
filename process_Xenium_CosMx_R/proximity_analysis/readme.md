@@ -8,7 +8,7 @@ This uses a df with cell names, x/y corrds for centroids of the cells and a iden
 library(devtools)
 library(spatula)
 library(furrr)
-source("/my_path/functions_prox.txt")
+source("/my_path/functions_prox.txt")  #found here: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/proximity_analysis/functions_prox.txt
 
 all_x_y <- rbindlist(data_x_y)
  
