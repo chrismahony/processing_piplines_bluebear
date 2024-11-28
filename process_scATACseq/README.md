@@ -290,7 +290,7 @@ Next apply these cutt off in bash.
 cd /rds/projects/your_path/
 
 # Remove all peaks in col 9 with value < 3 and pipe to test.txt
-cat ALL_PEAKS_MAPJAG_peaks.narrowPeak | awk '$9 > 3' > test.txt 
+cat ALL_PEAKS_peaks.narrowPeak | awk '$9 > 3' > test.txt 
 
 # Remove all peaks in col 7 with value < 1.5 and pipe to test2.txt
 cat test.txt | awk '$7 > 1.5' > test2.txt
@@ -299,7 +299,7 @@ cat test.txt | awk '$7 > 1.5' > test2.txt
 cat test2.txt | cut -f 1-3 > test3.txt 
 
 # Pipe test3 to a narrowPeak file 
-mv test3.txt ALL_peaks_MAPJAG_filtered.narrowPeak 
+mv test3.txt ALL_peaks_filtered.narrowPeak 
 
 # Remove all intermediate test files
 rm test*.* 
@@ -312,11 +312,13 @@ For convienvce, this is written in a complete pipeline:
 
 ```bash
 
-cat ALL_PEAKS_MAPJAG_peaks.narrowPeak | awk '$9 > 3' > test.txt 
+cat ALL_PEAKS_peaks.narrowPeak | awk '$9 > 3' > test.txt 
 cat test.txt | awk '$7 > 1.5' > test2.txt
 cat test2.txt | cut -f 1-3 > test3.txt 
-mv test3.txt ALL_peaks_MAPJAG_filtered.narrowPeak 
-rm test*.* 
+mv test3.txt ALL_peaks_filtered.narrowPeak 
+rm test*.*
+
+
 
 ```
 
@@ -327,7 +329,7 @@ Next for cell ranger reanalyze, the peaks need to be in the correct order. To do
 
 ```bash
 
-rep -Fwf ALL_peaks_MAPJAG_filtered.narrowPeak ALL_PEAKS_MAPJAG_peaks.narrowPeak > ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak
+grep -Fwf ALL_peaks_filtered.narrowPeak ALL_PEAKS_peaks.narrowPeak > ALL_PEAKS_peaks_filtered2.narrowPeak
 
 
 ```
@@ -335,19 +337,61 @@ rep -Fwf ALL_peaks_MAPJAG_filtered.narrowPeak ALL_PEAKS_MAPJAG_peaks.narrowPeak 
 Now to remove all peaks that are in unlocalised scafolds or in mitochonrial chromosomes
 
 
-```bash
+e.g. the start of my fial looks like:
 
-awk '$1 ~ /^chr[0-9]/' ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak > ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak
+```bash
 
 
 ```
+
+head ALL_PEAKS_peaks_filtered2.narrowPeak
+GL000008.2      106     4279    all_peaks_peak_1        186     .       1.74973 20.3966 18.6221 2678
+GL000008.2      83069   84024   all_peaks_peak_4        253     .       2.53272 27.3266 25.3675 226
+GL000008.2      103773  104088  all_peaks_peak_5        125     .       2.02617 14.1346 12.5315 218
+GL000008.2      118521  119272  all_peaks_peak_6        43      .       1.57591 5.61577 4.30898 355
+GL000008.2      125221  125479  all_peaks_peak_7        60      .       1.67426 7.48569 6.09929 147
+GL000008.2      126683  127050  all_peaks_peak_8        58      .       1.66349 7.18859 5.81328 189
+GL000008.2      127342  127926  all_peaks_peak_9        61      .       1.69022 7.55068 6.16242 99
+GL000008.2      132424  133084  all_peaks_peak_10       59      .       1.67165 7.34918 5.96925 353
+GL000008.2      147357  147723  all_peaks_peak_13       63      .       1.70534 7.75636 6.35979 194
+GL000008.2      153414  153740  all_peaks_peak_14       58      .       1.67358 7.27466 5.89687 163
+
+
+```bash
+
+grep "^chr" ALL_PEAKS_peaks_filtered2.narrow > filtered_peaks.narrow
+grep -v "^chrM" filtered_peaks.narrow > filtered_peaks_final.narrow
+[mahonyc@bear-pg-login06 output_macs2]$ head filtered_peaks_final.narrow
+chr1    9954    10770   all_peaks_peak_1451     1333    .       5.24836 140.898 133.385 288
+chr1    10824   11675   all_peaks_peak_1452     605     .       3.54776 63.7658 60.5999 343
+chr1    12159   12418   all_peaks_peak_1453     161     .       2.074   17.8938 16.1867 109
+chr1    15615   15856   all_peaks_peak_1454     131     .       1.91069 14.8194 13.1971 71
+chr1    16051   16580   all_peaks_peak_1455     84      .       1.7085  9.95585 8.48246 181
+chr1    17450   17673   all_peaks_peak_1456     93      .       1.71578 10.9029 9.39749 67
+chr1    19049   19350   all_peaks_peak_1457     73      .       1.5938  8.81376 7.37885 196
+chr1    20723   21655   all_peaks_peak_1458     396     .       2.44373 42.0163 39.639  653
+chr1    21756   22612   all_peaks_peak_1459     109     .       1.70704 12.4954 10.9418 191
+chr1    23411   23941   all_peaks_peak_1460     60      .       1.52449 7.48492 6.09854 359
+
+
+
+```
+
+And to check length of file (number of peaks)
+
+```bash
+
+ wc -l filtered_peaks.narrow
+
+```
+
 
 Finally, make sure the peak file is in dos format
 
 
 ```bash
 
-dos2unix ALL_PEAKS_MAPJAG_peaks_filtered2.narrowPeak
+dos2unix filtered_peaks_final.narrow
 
 ```
 
@@ -378,8 +422,8 @@ module load CellRanger-ATAC/2.0.0
 
 cellranger-atac reanalyze --id=all_aggr_mapjag_reanalyze \
                    --reference=/rds/projects/c/croftap-mapjag-batch5/scATAC/count/refdata-cellranger-arc-GRCh38-2020-A-2.0.0 \
---fragments=/rds/projects/c/croftap-mapjag-batch5/scATAC/aggr/all_aggr_mapjag/outs/fragments.tsv.gz \
---peaks=/rds/projects/c/croftap-mapjag-batch5/scATAC/aggr/ALL_PEAKS_MAPJAG_peaks_f2.txt
+--fragments=/rds/projects/my_path/aggr/all_aggr_mapjag/outs/fragments.tsv.gz \
+--peaks=/rds/projects/my_path/aggr/filtered_peaks_final.narrow.txt
 
 
 ```
