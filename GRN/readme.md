@@ -121,7 +121,7 @@ all_coembed_merge <- process_co_embed_list(co_embed_list, RNA_objs, ATAC_objs)
 ```
 
 
-6. Now set a tranjectory and plot it
+6. Now set a trajectory and plot it
 
 ```R
 
@@ -144,3 +144,70 @@ TrajectoryPlot(object = obj.pair_all_coembed_merge,
                    addArrow = FALSE)
 
 ```
+
+
+7. Next generate a genome for adding motifs and running chromVar
+
+```R
+
+library(JASPAR2020)
+library(TFBSTools)
+library(BiocParallel)
+register(SerialParam())
+library(BSgenome.Hsapiens.UCSC.hg38)
+
+DefaultAssay(obj.pair_all_coembed_merge) <- "peaks"
+
+pfm <- getMatrixSet(
+  x = JASPAR2020,
+  opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
+)
+
+
+keepBSgenomeSequences <- function(genome, seqnames)
+{
+    stopifnot(all(seqnames %in% seqnames(genome)))
+    genome@user_seqnames <- setNames(seqnames, seqnames)
+    genome@seqinfo <- genome@seqinfo[seqnames]
+    genome
+}
+
+sequences_to_keep <- paste0("chr", c(1:22, "X", "Y"))
+BSgenome.Hsapiens.UCSC.hg38_CM <- keepBSgenomeSequences(BSgenome.Hsapiens.UCSC.hg38, sequences_to_keep)
+
+DefaultAssay(obj.pair_all_coembed_merge) <- "peaks"
+
+gr <- granges(obj.pair_all_coembed_merge)
+seq_keep <- seqnames(gr) %in% seqnames(BSgenome.Hsapiens.UCSC.hg38_CM) 
+seq_keep <- as.vector(seq_keep)
+feat.keep <- GRangesToString(grange = gr[seq_keep])
+obj.pair_all_coembed_merge2 <- obj.pair_all_coembed_merge
+obj.pair_all_coembed_merge2[['peaks']] <- subset(obj.pair_all_coembed_merge2[["peaks"]], features = feat.keep)
+
+DefaultAssay(obj.pair_all_coembed_merge2) <- "peaks"
+
+
+
+obj.pair_all_coembed_merge2 <- AddMotifs(
+  object = obj.pair_all_coembed_merge2,
+  genome = BSgenome.Hsapiens.UCSC.hg38_CM,
+  pfm = pfm,
+    assay = "peaks"
+)
+
+obj.pair_all_coembed_merge2 <- RunChromVAR(
+  object = obj.pair_all_coembed_merge2,
+  genome = BSgenome.Hsapiens.UCSC.hg38_CM,
+    assay = "peaks"
+)
+
+register(MulticoreParam(40, progressbar = F))
+
+
+
+
+
+```
+
+
+
