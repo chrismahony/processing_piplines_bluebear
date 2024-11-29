@@ -88,14 +88,15 @@ fibroblasts_ATAC <- UpdateSeuratObject(fibroblasts_ATAC)
 ATAC_objs <- list()
 RNA_objs <- list()
 
-
 ATAC_objs[[1]] <- fibroblasts_ATAC_DEXM_v5
 ATAC_objs[[2]] <- fibroblasts_ATAC_LPSM_v5
-
-
 RNA_objs[[1]] <- fibroblasts_RNA_DEXM_v5
 RNA_objs[[2]] <- fibroblasts_RNA_LPSM_v5
 
+names(ATAC_objs) <- c("fibroblasts_ATAC_DEXM_v5", "fibroblasts_ATAC_LPSM_v5")
+names(RNA_objs) <- c("fibroblasts_RNA_DEXM_v5", "fibroblasts_RNA_LPSM_v5")
+
+# This wil take some time to run
 gene.activities <- GeneActivity(coculture_ATAC_QC_v5)
 
 
@@ -109,7 +110,37 @@ gene.activities <- GeneActivity(coculture_ATAC_QC_v5)
 library(Seurat)
 library(scMEGA)
 library(ArchR)
+library(sporkforlife)
 
 
+#use wrapper functions from sporkforlife
+
+co_embed_list <- coembed_data_function(ATAC_objs, RNA_objs, gene.activities)
+all_coembed_merge <- process_co_embed_list(co_embed_list, RNA_objs, ATAC_objs)
+
+```
+
+
+6. Now set a tranjectory and plot it
+
+```R
+
+obj.pair_all_coembed_merge <- AddTrajectory(object = all_coembed_merge, 
+                          trajectory = c("Fb_DexM", "Fb_LPSM"),
+                          group.by = "orig.ident", 
+                          reduction = "pca",
+                          dims = 1:3, 
+                          use.all = FALSE)
+
+
+DimPlot(obj.pair_all_coembed_merge)
+
+obj.pair_all_coembed_merge <- obj.pair_all_coembed_merge[, !is.na(obj.pair_all_coembed_merge$Trajectory)]
+
+TrajectoryPlot(object = obj.pair_all_coembed_merge, 
+                    reduction = "umap",
+                    continuousSet = "blueYellow",
+                    size = 1,
+                   addArrow = FALSE)
 
 ```
