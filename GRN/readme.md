@@ -209,5 +209,29 @@ register(MulticoreParam(40, progressbar = F))
 
 ```
 
+8. Next make sure your ATAC assay is called ATAC
+
+```R
+
+obj.pair_all_coembed_merge2@assays[['ATAC']] <- obj.pair_all_coembed_merge2@assays[['peaks']]
+
+
+```
+
+
+9. Then run the final function wich will save all the outputs and heatmaps
+
+```R
+results <- process_grn_analysis(obj.pair_all_coembed_merge2, correlation_threshold = 0.4)
+
+# Accessing results
+ht <- results$heatmap_tf
+ht2 <- results$heatmap_genes
+ht3 <- results$heatmap_tf_gene
+ht4 <- results$heatmap_tf_gene_timepoint
+df.grn <- results$grn
+df.grn2 <- results$grn_filtered
+
+```
 
 
