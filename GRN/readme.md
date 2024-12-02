@@ -110,6 +110,7 @@ gene.activities <- GeneActivity(coculture_ATAC_QC_v5)
 library(Seurat)
 library(scMEGA)
 library(ArchR)
+#devtools::install_github("chrismahony/sprokforlife")
 library(sporkforlife)
 
 
