@@ -53,6 +53,10 @@ Just select the type of analysis you need to do:
 
 
 
+6. Building a GRN from scRNAseq and scATACseq data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/GRN
+
+
+
 
 ## Analysing data (Python)
 
