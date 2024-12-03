@@ -272,7 +272,7 @@ combined_df %>%
 12. Further plotting options for default segmentation using spatialdataplot
 
 
-https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/Plotting_spatial_data.md
+[https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/Plotting_spatial_data.md](https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/Plotting_spatial_data.ipynb)
 
 
 
