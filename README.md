@@ -62,5 +62,5 @@ Just select the type of analysis you need to do:
 
 1. Analysing scRNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_scRNAseq_Python
 
-2. Analysing CosMx/Xenium: 
+2. Analysing CosMx/Xenium: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/spatial_python.ipynb
 
