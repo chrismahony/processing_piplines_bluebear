@@ -45,7 +45,7 @@ Just select the type of analysis you need to do:
 
 
 
-4. Analysing Geomix data (R):  https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_GeoMx
+4. Analysing GeoMx data (R):  https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_GeoMx
 
 
 
@@ -62,5 +62,5 @@ Just select the type of analysis you need to do:
 
 1. Analysing scRNAseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analyse_scRNAseq_Python
 
-
+2. Analysing CosMx/Xenium: 
 
