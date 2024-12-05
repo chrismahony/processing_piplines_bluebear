@@ -64,3 +64,5 @@ Just select the type of analysis you need to do:
 
 2. Analysing CosMx/Xenium: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/spatial_python.ipynb
 
+3. Plotting spatial tx data: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/Plotting_spatial_data.ipynb
+
