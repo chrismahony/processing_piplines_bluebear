@@ -31,6 +31,15 @@ Just select the type of analysis you need to do:
 
 
 
+## Nextflow processing pipelines
+
+1. Processing bulk RNAseq using STAR: https://github.com/chrismahony/UoB_RNAseq_STAR
+
+2.  Alignment using Bowtie2: 
+
+
+
+
 ## Analysing data (R)
 
 1. Analysing bulk RNAseq (R):https://github.com/chrismahony/processing_piplines_bluebear/tree/main/analysis_bulk_RNAseq
