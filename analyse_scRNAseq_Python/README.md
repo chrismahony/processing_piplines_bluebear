@@ -241,6 +241,23 @@ combined_adata.obs_names_make_unique()
 ```
 
 
+Read in files from a dir based on a string and generate a list of files names
+
+
+Generate a list of file names and sample names based on the string: '_cellbender_filtered.h5'
+
+```Python
+
+import glob
+
+directory = Path("/my_path/ambient_RNA_output")
+pattern = f"{directory}/*_cellbender_filtered.h5"
+file_paths = glob.glob(pattern)
+sample_names = [os.path.basename(file).split("_cellbender_filtered.h5")[0] for file in file_paths]
+
+```
+
+
 Add in further meta.data from csv file
 
 ```Python
