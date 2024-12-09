@@ -353,7 +353,7 @@ while resolution <= max_resolution:
     num_clusters = combined_adata.obs[f'louvain_{resolution:.1f}'].nunique()
     print(f"Resolution: {resolution:.1f}, Number of clusters: {num_clusters}")
     
-    if num_clusters == 8:
+    if num_clusters >= 8:
         print(f"Running sc.tl.rank_genes_groups for resolution {resolution:.1f}")
         sc.tl.rank_genes_groups(combined_adata, groupby=f'louvain_{resolution:.1f}', method='t-test')
         break
