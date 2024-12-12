@@ -77,6 +77,7 @@ echo "Trimming and FastQC completed for all files."
 
 ```
 
+
 3. Align to reference genome using STAR, for this you will need to create a ref genome in STAR format
 
 ```bash
@@ -107,12 +108,31 @@ STAR --runThreadN 60 \
 
 
 
-4. Now run star on fastq files
+4. Now run STAR on fastq files
 
 ```bash
 
+#!/bin/bash
+#SBATCH -n 72
+#SBATCH -N 1
+#SBATCH --mem 180000
+#SBATCH --time 68:0:0
+#SBATCH --mail-type ALL
+#SBATCH --account=croftap-XXXX
 
 
+set -e
+module purge; module load bluebear
+module load bear-apps/2022b
+module load STAR/2.7.11a-GCC-12.2.0
 
+
+STAR --genomeDir /rds/path/genome_dir \
+--runThreadN 60 \
+--readFilesIn /rds/path/s1_1_read1.fastq.gz /rds/path/s1_1_read2.fastq.gz,/rds/path/s1_2_read1.fastq.gz /rds/path/s1_2_read2.fastq.gz \
+--outFileNamePrefix /rds/path/sample1_ \
+--outSAMtype BAM SortedByCoordinate \
+--outSAMunmapped Within \
+--outSAMattributes Standard 
 
 ```
