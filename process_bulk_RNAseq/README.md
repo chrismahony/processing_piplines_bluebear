@@ -191,3 +191,6 @@ sbatch count1.txt
 Make sure you save the second script as count_all.txt or it will not run!! Do not change the name!
 
 
+7. Simple method alternative using STAR: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_bulk_RNAseq/STAR_simple.md
+
+
