@@ -35,7 +35,7 @@ Just select the type of analysis you need to do:
 
 1. Processing bulk RNAseq using STAR: https://github.com/chrismahony/UoB_RNAseq_STAR
 
-2.  Alignment using Bowtie2: 
+2.  Alignment using Bowtie2: https://github.com/chrismahony/UoB_Bowtie2_nf/tree/main
 
 
 
