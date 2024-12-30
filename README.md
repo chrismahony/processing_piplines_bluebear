@@ -37,6 +37,8 @@ Just select the type of analysis you need to do:
 
 2.  Alignment using Bowtie2: https://github.com/chrismahony/UoB_Bowtie2_nf/tree/main
 
+3.  Processing and analysing spatial tx data (Python): https://github.com/chrismahony/UoB_spatial_tx_nf/tree/main
+
 
 
 
