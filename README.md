@@ -29,7 +29,7 @@ Just select the type of analysis you need to do:
 
 5. Processing Geomix data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/process_GeoMx
 
-6. Processing bulk ATACseq: 
+6. Processing bulk ATACseq: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/bulk_ATACseq
 
 
 
