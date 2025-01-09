@@ -2,7 +2,34 @@
 
 1. First, download and unpack your data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/dowloand_data_novogene
 
-2. Next, you need to run fastqc, align your fastq files to reference genome, filter for unique reads and remove mt reads
+
+2. Organise your data a logical way, e.g.
+
+/croftap-XXXX/
+|-- my_project
+| |--fastqs   #where you put fastqs
+| |--count   #where you will run the next steps and perform alingment
+
+
+Save this next script in to your 'count' folder (or what ever you name it) and call it something link 'count1.txt'.
+Be sure to amend paths to where your data is as well as #SBATCH --account=croftap-labdata2 to the name of an RDS folder you have access to.
+
+Also amend the number of arrays, if you have 9 samples then you need:
+
+```bash
+#SBATCH --array=0-8
+
+```
+
+if you have 5 samples then you need:
+
+```bash
+#SBATCH --array=0-4
+
+```
+
+
+3. Next, you need to run fastqc, align your fastq files to reference genome, filter for unique reads and remove mt reads
 
 ```bash
 
@@ -88,7 +115,7 @@ fi
 
 ```
 
-3. Then Call peaks from all BAM files
+4. Then Call peaks from all BAM files
 
 
 ```bash
@@ -124,7 +151,7 @@ deactivate
 
 
 
-4. Next remove those lying in blacklist regtions and generate a count matrix for analysis in R
+5. Next remove those lying in blacklist regtions and generate a count matrix for analysis in R
 
 ```bash
 
