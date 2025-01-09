@@ -74,7 +74,7 @@ SAMPLE_INDEX=$SLURM_ARRAY_TASK_ID
 
 SAMPLE_DIR=${FASTQ_DIRS[$SAMPLE_INDEX]}
 
-FASTQ_FILES=("$SAMPLE_DIR"*.fq.gz)
+FASTQ_FILES=("$SAMPLE_DIR"*.{fq,fastq}.gz)
 
  echo "Running FastQC on $SAMPLE_ID"
 for fastq_file in "${FASTQ_FILES[@]}"; do
