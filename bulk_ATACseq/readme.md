@@ -2,33 +2,88 @@
 
 1. First, download and unpack your data: https://github.com/chrismahony/processing_piplines_bluebear/tree/main/dowloand_data_novogene
 
-2. Next, you need to aling your fastq files to reference genome, filter for unique reads and remove mt reads
+2. Next, you need to run fastqc, align your fastq files to reference genome, filter for unique reads and remove mt reads
 
 ```bash
 
 
 #!/bin/bash
-#SBATCH -n 20
+#SBATCH -n 60
 #SBATCH -N 1
-#SBATCH --mem 180000
-#SBATCH --time 68:0:0
+#SBATCH --mem 299G
+#SBATCH --time 48:0:0
 #SBATCH --mail-type ALL
-#SBATCH --account=croftap-stia-atac
+#SBATCH --account=croftap-labdata2  #chnage this to the name of an RDS folder you have permission to access
+#SBATCH --array=0-8  # if you have 3 samples then this whould be 0-2
 
-
+export MRO_DISK_SPACE_CHECK=disable
 set -e
+
 module purge; module load bluebear
+module load FastQC/0.11.9-Java-11
 
 
-module load bear-apps/2021b
-module load SAMtools/1.15.1-GCC-11.2.0
+#root dir is a director with folders for each sample, in each folder there are fastq files
+ROOT_DIR="/rds/projects/c/croftap-XXXX/bulkRNAseq_X204SC14204168-Z01-F001/fastqs/X204SC14204168-Z01-F001/01.RawData"
+FASTQ_DIRS=("$ROOT_DIR"/*/)  
 
-samtools idxstats unique_SRR8758526_sorted.bam | cut -f1 | grep -v Mt | xargs samtools view --threads 7 -b unique_SRR8758526_sorted.bam > nomt_unique_SRR8758526_sorted.bam
-samtools idxstats unique_SRR8758524_sorted.bam | cut -f1 | grep -v Mt | xargs samtools view --threads 7 -b unique_SRR8758524_sorted.bam > nomt_unique_SRR8758524_sorted.bam
+#where your index is stored
+BOWTIE_INDEX="/add_your_path/mm10/mm10"
 
-samtools index nomt_unique_SRR8758526_sorted.bam
-samtools index nomt_unique_SRR8758524_sorted.bam
+cd /rds/projects/c/croftap-XXXX/bulkRNAseq_X204SC14204168-Z01-F001/
 
+#create output dirs if they dont exist
+
+mkdir -p int_outs
+mkdir -p final_outs
+mkdir -p fastqc_results
+
+cd ./int_outs/
+
+
+####start processing
+
+SAMPLE_INDEX=$SLURM_ARRAY_TASK_ID
+
+SAMPLE_DIR=${FASTQ_DIRS[$SAMPLE_INDEX]}
+
+FASTQ_FILES=("$SAMPLE_DIR"*.fq.gz)
+
+ echo "Running FastQC on $SAMPLE_ID"
+for fastq_file in "${FASTQ_FILES[@]}"; do
+    fastqc -o "../fastqc_results" "$fastq_file"
+done
+
+
+module purge; module load bluebear
+module load bear-apps/2022b
+module load Bowtie2/2.5.1-GCC-12.2.0
+module load SAMtools/1.17-GCC-12.2.0
+
+
+SAMPLE_ID=$(basename "$SAMPLE_DIR")
+SAM_FILE="${SAMPLE_ID}_unsorted.sam"
+
+bowtie2 -x "$BOWTIE_INDEX" -U "${FASTQ_FILES[@]}" -S "$SAM_FILE"
+
+samtools view -bS "$SAM_FILE" | samtools sort - > "${SAMPLE_ID}_sorted.bam"
+samtools view -bq 1 "${SAMPLE_ID}_sorted.bam" > "../final_outs/unique_${SAMPLE_ID}_sorted.bam"
+
+
+# mouse- mt, human- Mt
+samtools idxstats ../final_outs/unique_${SAMPLE_ID}_sorted.bam | cut -f1 | grep -v mt | xargs samtools view --threads 7 -b ../final_outs/unique_${SAMPLE_ID}_sorted.bam > ../final_outs/nomt_unique_${SAMPLE_ID}_sorted.bam
+
+samtools index ../final_outs/nomt_unique_${SAMPLE_ID}_sorted.bam
+
+
+module purge; module load bluebear
+module load MultiQC/1.9-foss-2019b-Python-3.7.4
+
+
+if [ "$SAMPLE_INDEX" -eq "${#FASTQ_DIRS[@]}" ]; then
+    echo "All FastQC runs complete. Running MultiQC."
+    multiqc ../fastqc_results -o ../final_outs/multiqc_report
+fi
 
 
 ```
