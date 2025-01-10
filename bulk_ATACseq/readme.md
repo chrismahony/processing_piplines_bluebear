@@ -29,7 +29,7 @@ if you have 5 samples then you need:
 ```
 
 
-3. Next, you need to run fastqc, align your fastq files to reference genome, filter for unique reads and remove mt reads
+3. Next, you need to run fastqc, align your fastq files to reference genome and filter for unique reads
 
 ```bash
 
@@ -97,25 +97,60 @@ samtools view -bS "$SAM_FILE" | samtools sort - > "${SAMPLE_ID}_sorted.bam"
 samtools view -bq 1 "${SAMPLE_ID}_sorted.bam" > "../final_outs/unique_${SAMPLE_ID}_sorted.bam"
 
 
-# mouse- mt, human- Mt
-samtools idxstats ../final_outs/unique_${SAMPLE_ID}_sorted.bam | cut -f1 | grep -v mt | xargs samtools view --threads 7 -b ../final_outs/unique_${SAMPLE_ID}_sorted.bam > ../final_outs/nomt_unique_${SAMPLE_ID}_sorted.bam
-
-samtools index ../final_outs/nomt_unique_${SAMPLE_ID}_sorted.bam
-
-
-module purge; module load bluebear
-module load MultiQC/1.9-foss-2019b-Python-3.7.4
-
-
-if [ "$SAMPLE_INDEX" -eq "${#FASTQ_DIRS[@]}" ]; then
-    echo "All FastQC runs complete. Running MultiQC."
-    multiqc ../fastqc_results -o ../final_outs/multiqc_report
-fi
 
 
 ```
 
-4. Then Call peaks from all BAM files
+4. Next ned to remove mt reads and index bams
+
+
+
+```bash
+
+#!/bin/bash
+#SBATCH -n 60
+#SBATCH -N 1
+#SBATCH --mem 299G
+#SBATCH --time 48:0:0
+#SBATCH --mail-type ALL
+#SBATCH --account=croftap-labdata2  #chnage this to the name of an RDS folder you have permission to access
+
+export MRO_DISK_SPACE_CHECK=disable
+set -e
+
+module purge; module load bluebear
+module load bear-apps/2022b
+module load Bowtie2/2.5.1-GCC-12.2.0
+module load SAMtools/1.17-GCC-12.2.0
+
+
+# Directory containing the BAM files
+INPUT_DIR="/rds/projects/c/croftap-croftapcarcia/RNA_ATAC_JAN2025/count/final_outs/"
+
+# Iterate through all BAM files starting with "unique_" and ending with ".bam"
+for BAM_FILE in "$INPUT_DIR"/unique_*.bam; do
+    # Extract the basename without extension
+    BASENAME=$(basename "$BAM_FILE" .bam)
+    
+    # Index the BAM file if not already indexed
+    if [ ! -f "$BAM_FILE.bai" ]; then
+        echo "Indexing $BAM_FILE..."
+        samtools index "$BAM_FILE"
+    fi
+
+    # Define the output file path
+    OUTPUT_FILE="$INPUT_DIR/${BASENAME}_no_mt.bam"
+    
+    # Use samtools to remove mt reads and save to new file
+    samtools view -h "$BAM_FILE" | grep -v 'chrM' | samtools view -b -o "$OUTPUT_FILE"
+
+ done
+
+
+```
+
+
+5. Then Call peaks from all BAM files
 
 
 ```bash
@@ -151,7 +186,7 @@ deactivate
 
 
 
-5. Next remove those lying in blacklist regtions and generate a count matrix for analysis in R
+6. Next remove those lying in blacklist regtions and generate a count matrix for analysis in R
 
 ```bash
 
