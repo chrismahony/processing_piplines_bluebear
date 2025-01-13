@@ -211,29 +211,22 @@ done
 
 
 #!/bin/bash
-#SBATCH -n 72
+#SBATCH -n 40
 #SBATCH -N 1
-#SBATCH --mem 499G
-#SBATCH --time 99:0:0
-#SBATCH --qos castles
+#SBATCH --mem 299G
+#SBATCH --time 24:0:0
 #SBATCH --mail-type ALL
 #SBATCH --account=croftap-stia-atac
-#SBATCH --constraint=icelake
 
 set -e
 
 module purge; module load bluebear
+module load MACS2/2.2.7.1-foss-2020a-Python-3.8.2
 
+INPUT_DIR="/rds/projects/c/croftap-croftapcarcia/RNA_ATAC_JAN2025/count/final_outs/"
 
-cd /rds/projects/c/croftap-runx1data01/analysis_of_public_data_sets/Bulk_human_data/GSE128644_ATACseq
-source /rds/projects/c/croftap-runx1data01/analysis_of_public_data_sets/kolias_paper_data/my-virtual-env-haswell/bin/activate
-
-
-macs3 callpeak -t nomt_ATAC_merged.bam /rds/projects/c/croftap-runx1data01/analysis_of_public_data_sets/Bulk_human_data/GSE128644_ATACseq/ATAC_tnfa72h/nomt_ATAC_TNF_merged.bam /rds/projects/m/mahonyc-kitwong-runx1/ATAC-processing_CM/nomt_unique_SRR8758528_sorted.bam /rds/projects/m/mahonyc-kitwong-runx1/ATAC-processing_CM/nomt_unique_SRR8758527_sorted.bam \
--n ALL_PEAKS_alltimes_merged_rest --broad -q 0.1 --nomodel -g 2.8E9 \
-
-
-deactivate
+macs2 callpeak -t ${INPUT_DIR}/*filtered_nomt_final.bam \
+-n ALL_PEAKS -g 1.87E9
 
 
 ```
