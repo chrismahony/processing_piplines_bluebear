@@ -150,6 +150,60 @@ for BAM_FILE in "$INPUT_DIR"/unique_*.bam; do
 ```
 
 
+NB. in one case I have many very small reads (~8bp in lenght) along with many other good quality reads (~150bp). I filtered out these contaminating reads using the following script:
+
+
+
+```bash
+
+#!/bin/bash
+#SBATCH -n 60
+#SBATCH -N 1
+#SBATCH --mem 299G
+#SBATCH --time 48:0:0
+#SBATCH --mail-type ALL
+#SBATCH --account=croftap-labdata2  #chnage this to the name of an RDS folder you have permission to access
+
+export MRO_DISK_SPACE_CHECK=disable
+set -e
+
+module purge; module load bluebear
+module load bear-apps/2022b
+module load SAMtools/1.17-GCC-12.2.0
+
+
+# Define the directory containing the BAM files
+input_dir="/rds/projects/c/croftap-croftapcarcia/RNA_ATAC_JAN2025/count/final_outs/"
+
+# Loop through all BAM files matching the pattern in the specified directory
+for bam_file in "$input_dir"/*_no_mt.bam; do
+    if [ -f "$bam_file" ]; then
+                
+        # Generate the output filename
+        filtered_bam="${bam_file%.bam}_filtered_nomt_final.bam"
+        
+        # Filter reads shorter than 10 bp and save to the filtered BAM file
+        samtools view -h "$bam_file" | \
+        awk 'length($10) >= 10 || $1 ~ /^@/' | \
+        samtools view -b -o "$filtered_bam"
+        
+        # Index the filtered BAM file
+        samtools index "$filtered_bam"
+        
+        echo "Finished processing $bam_file. Output: $filtered_bam"
+    else
+        echo "No files matching *_no_mt.bam in $input_dir."
+    fi
+done
+
+
+```
+
+
+
+
+
+
 5. Then Call peaks from all BAM files
 
 
