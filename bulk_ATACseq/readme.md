@@ -270,3 +270,6 @@ featureCounts -p -F SAF -a ALL_PEAKS_alltimes_merged_rest_noblacklist.broadPeak.
 
 
 ```
+
+
+This Final count matrix can now be read into R for DE analysis to examine the difference between conditions.
