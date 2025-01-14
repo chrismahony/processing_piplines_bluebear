@@ -437,8 +437,102 @@ That is attahced in this folder
 run.txt
 
 
+18. Adding TCR/BCR data once you have a combined adata obj. First create a new dir, in this create a dir for each sample and in each sample dir create a vdj_t and vdj_b dir.
 
-18. For further downstream analysis, subset a particular cell type:
+Next you need to copy 'filtered_contig_annotations.csv' and 'clonotypes.csv' from the vdj_t or vdj_b cell ranger outs. Then you should be able to run the script below.
+
+
+```bash
+
+import os
+import pandas as pd
+
+# Path to the parent directory containing sample folders
+parent_dir = "/rds/projects/c/croftap-mapjagb10/scRNAseq/count/all_clonotye"
+
+# Initialize DataFrames for TCR and BCR
+all_tcr_data = []
+all_bcr_data = []
+
+# Iterate over all sample folders
+for sample_name in os.listdir(parent_dir):
+    sample_folder = os.path.join(parent_dir, sample_name)
+    if not os.path.isdir(sample_folder):
+        continue  # Skip if not a directory
+
+    # TCR data paths
+    tcr_path = os.path.join(sample_folder, "vdj_t/filtered_contig_annotations.csv")
+    clono_tcr_path = os.path.join(sample_folder, "vdj_t/clonotypes.csv")
+
+    # BCR data paths
+    bcr_path = os.path.join(sample_folder, "vdj_b/filtered_contig_annotations.csv")
+    clono_bcr_path = os.path.join(sample_folder, "vdj_b/clonotypes.csv")
+
+    # Process TCR data if files exist
+    if os.path.exists(tcr_path) and os.path.exists(clono_tcr_path):
+        tcr_data = pd.read_csv(tcr_path)
+        clono_tcr_data = pd.read_csv(clono_tcr_path)
+
+        tcr_data = tcr_data[~tcr_data['barcode'].duplicated()][['barcode', 'raw_clonotype_id']]
+        tcr_data.rename(columns={'raw_clonotype_id': 'clonotype_id'}, inplace=True)
+        tcr_data = tcr_data.merge(clono_tcr_data[['clonotype_id', 'cdr3s_aa']], on='clonotype_id', how='left')
+        tcr_data['sample'] = sample_name  # Add sample name for reference
+        all_tcr_data.append(tcr_data)
+
+    # Process BCR data if files exist
+    if os.path.exists(bcr_path) and os.path.exists(clono_bcr_path):
+        bcr_data = pd.read_csv(bcr_path)
+        clono_bcr_data = pd.read_csv(clono_bcr_path)
+
+        bcr_data = bcr_data[~bcr_data['barcode'].duplicated()][['barcode', 'raw_clonotype_id']]
+        bcr_data.rename(columns={'raw_clonotype_id': 'clonotype_id'}, inplace=True)
+        bcr_data = bcr_data.merge(clono_bcr_data[['clonotype_id', 'cdr3s_aa']], on='clonotype_id', how='left')
+        bcr_data['sample'] = sample_name  # Add sample name for reference
+        all_bcr_data.append(bcr_data)
+
+# Combine all TCR and BCR data into single DataFrames
+tcr_combined = pd.concat(all_tcr_data, ignore_index=True) if all_tcr_data else pd.DataFrame()
+bcr_combined = pd.concat(all_bcr_data, ignore_index=True) if all_bcr_data else pd.DataFrame()
+
+# Format TCR data for merging with AnnData
+if not tcr_combined.empty:
+    tcr_combined.set_index('barcode', inplace=True)
+    tcr_combined.rename(columns={'clonotype_id': 'T_clonotype_id', 'cdr3s_aa': 'T_cdr3s_aa'}, inplace=True)
+
+# Format BCR data for merging with AnnData
+if not bcr_combined.empty:
+    bcr_combined.set_index('barcode', inplace=True)
+    bcr_combined.rename(columns={'clonotype_id': 'B_clonotype_id', 'cdr3s_aa': 'B_cdr3s_aa'}, inplace=True)
+
+
+tcr_combined = tcr_combined[tcr_combined.index.isin(combined_adata.obs.index)]
+bcr_combined = bcr_combined[bcr_combined.index.isin(combined_adata.obs.index)]
+
+# Resolve duplicates by keeping the first occurrence
+tcr_combined = tcr_combined.groupby(tcr_combined.index).first()
+bcr_combined = bcr_combined.groupby(bcr_combined.index).first()
+
+# Reindex to match AnnData indices
+tcr_combined = tcr_combined.reindex(combined_adata.obs.index)
+bcr_combined = bcr_combined.reindex(combined_adata.obs.index)
+
+# Merge into AnnData.obs
+if not tcr_combined.empty:
+    combined_adata.obs = combined_adata.obs.merge(
+        tcr_combined, how='left', left_index=True, right_index=True
+    )
+if not bcr_combined.empty:
+    combined_adata.obs = combined_adata.obs.merge(
+        bcr_combined, how='left', left_index=True, right_index=True
+    )
+
+
+combined_adata
+
+```
+
+
+19. For further downstream analysis, subset a particular cell type:
 
 ```python
 
