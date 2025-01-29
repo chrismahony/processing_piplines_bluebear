@@ -312,6 +312,65 @@ sc.pl.violin(
     multi_panel=True,
 )
 
+
+###Optional to plot per sample and save plot as jpeg, can be done before and/or after further QC steps below
+
+
+sc.pl.violin(
+    combined_adata,
+    ["n_genes_by_counts"],
+    jitter=0.4,
+    multi_panel=True, groupby= "sample", show=False
+)
+
+
+plt.savefig("./path/QC1.jpeg", dpi=300, format="jpeg", bbox_inches="tight")
+
+
+sc.pl.violin(
+    combined_adata,
+    ["total_counts"],
+    jitter=0.4,
+    multi_panel=True, groupby= "sample", show=False
+)
+
+
+plt.savefig("./path/QC2.jpeg", dpi=300, format="jpeg", bbox_inches="tight")
+
+
+sc.pl.violin(
+    combined_adata,
+    ["pct_counts_mt"],
+    jitter=0.4,
+    multi_panel=True, groupby= "sample", show=False
+)
+
+
+plt.savefig("./path/QC3.jpeg", dpi=300, format="jpeg", bbox_inches="tight")
+
+
+# Count the number of cells per sample
+cell_counts = combined_adata.obs["sample"].value_counts()
+
+# Convert to DataFrame for easier plotting
+cell_counts_df = cell_counts.reset_index()
+cell_counts_df.columns = ["Sample", "Cell Count"]
+
+# Plot bar chart
+plt.figure(figsize=(8, 5))
+sns.barplot(x="Sample", y="Cell Count", data=cell_counts_df, palette="viridis")
+
+# Customize plot
+plt.xticks(rotation=45, ha="right")
+plt.xlabel("Sample")
+plt.ylabel("Number of Cells")
+plt.title("Cell Counts per Sample")
+
+# Show the plot
+plt.savefig("./path/cell_counts.jpg", dpi=300, bbox_inches="tight")
+
+
+
 ```
 
 10. Filter based on QC metrics and remove dublets:
