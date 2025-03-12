@@ -1,4 +1,4 @@
-# Uploading your sequenned data to GEO
+# Uploading your sequenced data to GEO
 
 1. First login to: https://www.ncbi.nlm.nih.gov/geo/info/submission.html
 
