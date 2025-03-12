@@ -79,3 +79,9 @@ Just select the type of analysis you need to do:
 
 3. Plotting spatial tx data: https://github.com/chrismahony/processing_piplines_bluebear/blob/main/process_Xenium_CosMx_R/Plotting_spatial_data.ipynb
 
+
+
+## Uploading data to GEO repo for publication
+
+1. https://github.com/chrismahony/processing_piplines_bluebear/blob/main/upload_to_GEO/analysis.md
+
