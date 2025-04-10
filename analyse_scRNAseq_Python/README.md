@@ -590,6 +590,49 @@ combined_adata
 
 ```
 
+For additonal QC, check how many cells have both a TCR and BCR
+
+```
+# Identify cells with both TCR and BCR
+both_tcr_bcr_mask = (
+    combined_adata.obs['T_clonotype_id'].notna() &
+    combined_adata.obs['B_clonotype_id'].notna()
+)
+
+# Get the sample information and count
+both_tcr_bcr_counts = (
+    combined_adata.obs[both_tcr_bcr_mask]
+    .groupby("sample")
+    .size()
+    .reset_index(name="cell_count")
+)
+
+# Plot
+plt.figure(figsize=(10, 6))
+sns.barplot(data=both_tcr_bcr_counts, x="sample", y="cell_count", palette="Set2")
+plt.xticks(rotation=45, ha='right')
+plt.xlabel("Sample")
+plt.ylabel("Cells with both TCR and BCR")
+plt.title("Number of Cells with Both TCR and BCR per Sample")
+plt.tight_layout()
+plt.show()
+
+```
+
+Now remove these cells
+
+```
+
+# Remove cells with both TCR and BCR
+both_tcr_bcr = (
+    combined_adata.obs['T_clonotype_id'].notna() & 
+    combined_adata.obs['B_clonotype_id'].notna()
+)
+combined_adata = combined_adata[~both_tcr_bcr].copy()
+
+
+
+```
 
 19. For further downstream analysis, subset a particular cell type:
 
