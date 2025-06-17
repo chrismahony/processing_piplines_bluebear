@@ -85,3 +85,8 @@ Just select the type of analysis you need to do:
 
 1. https://github.com/chrismahony/processing_piplines_bluebear/blob/main/upload_to_GEO/analysis.md
 
+
+
+## Going from R to Python
+
+1. https://github.com/chrismahony/processing_piplines_bluebear/blob/main/R_2_Python/readme.md
