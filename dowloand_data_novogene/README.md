@@ -9,7 +9,7 @@
 
 4. Select all files and click 'export link'.
 
-5. Copy this file into the directory where you wan to download the data.
+5. Copy this file into the directory where you wan to download the data. Probaly create a folder 'fastqs' as this is a logical way to name the data downalded
 
 6. Now copy the script below and modify the wget line to the name of your csv
 
