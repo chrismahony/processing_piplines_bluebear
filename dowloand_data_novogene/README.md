@@ -7,7 +7,7 @@
 
 3. Select batch to download.
 
-4. Select all files and click 'batch download'.
+4. Select all files and click 'export link'.
 
 5. Copy this file into the directory where you wan to download the data.
 
