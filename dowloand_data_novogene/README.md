@@ -18,16 +18,15 @@
 ```bash
 
 #!/bin/bash
-#SBATCH -n 30
-#SBATCH -N 1
-#SBATCH --mem 199G
-#SBATCH --time 49:0:0
-#SBATCH --mail-type ALL
-#SBATCH --account=croftap-stia-atac
+#SBATCH -n 30   # Number of cores, 30 is good
+#SBATCH -N 1   # Number of node, dont change
+#SBATCH --mem 199G  # Memory request- this is fine
+#SBATCH --time 12:0:0 # Time HH:M:S
+#SBATCH --mail-type ALL # You will get an email when start/end
+#SBATCH --account=croftap-stia-atac # RDS folder- make sure you have access to the one you put here
 
 
 set -e
-
 module purge; module load bluebear
 
 wget -i ./X204SC24101141-Z01-F001.csv
